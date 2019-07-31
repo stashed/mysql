@@ -12,6 +12,8 @@ spec:
       value: /tmp/output
     - name: secretVolume
       value: secret-volume
+    # - name: myArgs
+    #   value: "--all-databases"
   - name: update-status
     params:
     - name: outputDir

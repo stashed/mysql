@@ -10,7 +10,7 @@ docker:
 
 # optional argument to send mysqldump or mysql command
 backup:
-  myArgs: ""
+  myArgs: "--all-databases"
 restore:
   myArgs: ""
 
