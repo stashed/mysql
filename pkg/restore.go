@@ -21,7 +21,7 @@ func NewCmdRestore() *cobra.Command {
 		namespace      string
 		appBindingName string
 		outputDir      string
-		myArgs      string
+		myArgs         string
 		setupOpt       = restic.SetupOptions{
 			ScratchDir:  restic.DefaultScratchDir,
 			EnableCache: false,
@@ -139,6 +139,7 @@ func NewCmdRestore() *cobra.Command {
 	cmd.Flags().IntVar(&setupOpt.MaxConnections, "max-connections", setupOpt.MaxConnections, "Specify maximum concurrent connections for GCS, Azure and B2 backend")
 
 	cmd.Flags().StringVar(&dumpOpt.Host, "hostname", dumpOpt.Host, "Name of the host machine")
+	cmd.Flags().StringVar(&dumpOpt.Host, "source-hostname", dumpOpt.SourceHost, "Name of the host from where data will be restored")
 	// TODO: sliceVar
 	cmd.Flags().StringVar(&dumpOpt.Snapshot, "snapshot", dumpOpt.Snapshot, "Snapshot to dump")
 

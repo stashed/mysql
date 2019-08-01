@@ -13,17 +13,21 @@ const (
 	RepositoryEndpoint   = "REPOSITORY_ENDPOINT"
 	RepositoryURL        = "REPOSITORY_URL"
 
-	Hostname = "HOSTNAME"
+	Hostname       = "HOSTNAME"
+	SourceHostname = "SOURCE_HOSTNAME"
 
 	TargetName        = "TARGET_NAME"
 	TargetAPIVersion  = "TARGET_API_VERSION"
 	TargetKind        = "TARGET_KIND"
+	TargetResource    = "TARGET_RESOURCE"
 	TargetNamespace   = "TARGET_NAMESPACE"
 	TargetMountPath   = "TARGET_MOUNT_PATH"
-	TargetDirectories = "TARGET_DIRECTORIES"
+	TargetPaths       = "TARGET_PATHS"
+	TargetAppVersion  = "TARGET_APP_VERSION"
+	TargetAppReplicas = "TARGET_APP_REPLICAS"
 
-	RestoreDirectories = "RESTORE_DIRECTORIES"
-	RestoreSnapshots   = "RESTORE_SNAPSHOTS"
+	RestorePaths     = "RESTORE_PATHS"
+	RestoreSnapshots = "RESTORE_SNAPSHOTS"
 
 	RetentionKeepLast    = "RETENTION_KEEP_LAST"
 	RetentionKeepHourly  = "RETENTION_KEEP_HOURLY"
@@ -46,4 +50,6 @@ const (
 	IONiceClassData = "IONICE_CLASS_DATA"
 
 	StatusSubresourceEnabled = "ENABLE_STATUS_SUBRESOURCE"
+
+	PushgatewayURL = "PROMETHEUS_PUSHGATEWAY_URL"
 )

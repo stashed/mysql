@@ -31,7 +31,7 @@ func NewCmdBackup() *cobra.Command {
 		namespace      string
 		appBindingName string
 		outputDir      string
-		myArgs      = "--all-databases"
+		myArgs         = "--all-databases"
 		setupOpt       = restic.SetupOptions{
 			ScratchDir:  restic.DefaultScratchDir,
 			EnableCache: false,
