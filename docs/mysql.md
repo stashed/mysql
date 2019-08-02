@@ -1,4 +1,6 @@
 ---
+
+
 title: Backup MySQL | Stash
 description: Backup MySQL database using Stash
 menu:
@@ -24,8 +26,8 @@ Stash 0.9.0+ supports backup and restoration of MySQL databases. This guide will
 
 - Install [KubeDB](https://kubedb.com) in your cluster following the steps [here](https://kubedb.com/docs/0.12.0/setup/install/).
 
-- If you are not familiar with how Stash backup and restore databases, please check the following guide:
-  - [How Stash backup and restore databases](https://appscode.com/products/stash/0.8.3/guides/databases/overview/).
+- If you are not familiar with how Stash takes backup of databases and restores them, please check the following guide:
+  - [How Stash takes backup of databases and restores them](https://appscode.com/products/stash/0.8.3/guides/databases/overview/).
 
 You have to be familiar with following custom resources:
 
@@ -37,7 +39,7 @@ You have to be familiar with following custom resources:
 
 To keep things isolated, we are going to use a separate namespace called `demo` throughout this tutorial. Create `demo` namespace if you haven't created yet.
 
-```console
+```bash
 $ kubectl create ns demo
 namespace/demo created
 ```
@@ -46,52 +48,35 @@ namespace/demo created
 
 ## Install MySQL Catalog for Stash
 
-At first, we have to install MySQL plugin (`mysql-catalog`) for Stash. This plugin creates necessary `Function` and `Task` definition which is used by Stash to backup or restore a MySQL database. We are going to use [Helm](https://helm.sh/) to install `mysql-catalog` chart.
+At first, we have to install MySQL plugin (`mysql-catalog`) for Stash. This plugin creates necessary `Functions` and `Tasks` definition which is used by Stash to backup or restore a MySQL database. We are going to use [Helm](https://helm.sh/) to install `mysql-catalog` chart.
 
-If you have already installed `stash-catalog` which contains necessary `Function` and `Task` definition to backup or restore all the databases supported by Stash, you can skip installing `mysql-catalog`.
+If you have already installed `stash-catalog` which contains necessary `Functions` and `Tasks` definition to take backup or restore all the databases supported by Stash, you can skip installing `mysql-catalog`.
 
 Let's install `mysql-catalog` chart,
 
-```console
+```bash
 helm repo add appscode https://charts.appscode.com/stable/
 helm repo update
 helm install appscode/mysql-catalog --name mysql-catalog
 ```
 
-Once installed, this will create `my-backup-*` and `my-recovery-*` Functions for all supported MySQL versions. Verify that the Functions has been created successfully by,
+Once installed, this will create `my-backup-*` and `my-restore-*` Functions for all supported MySQL versions. Verify that the Functions have been created successfully by,
 
-```console
+```bash
 $ kubectl get function.stash.appscode.com
-NAME             AGE
-my-backup-9.6    6s
-my-backup-10.2   6s
-my-backup-10.6   6s
-my-backup-11.1   6s
-my-backup-11.2   6s
-my-restore-9.6   6s
-my-restore-10.2  6s
-my-restore-10.6  6s
-my-restore-11.1  6s
-my-restore-11.2  6s
-update-status    6d19h
+NAME                AGE
+my-backup-8.0.14    8s
+my-restore-8.0.14   8s
+update-status       59m
 ```
 
 This will also create `my-backup-*` and `my-restore-*` Tasks for all supported MySQL versions. Verify that they have been created successfully by,
 
-```console
+```bash
 $ kubectl get task.stash.appscode.com
-NAME             AGE
-NAME             AGE
-my-backup-9.6    10s
-my-backup-10.2   10s
-my-backup-10.6   10s
-my-backup-11.1   10s
-my-backup-11.2   10s
-my-restore-9.6   10s
-my-restore-10.2  10s
-my-restore-10.6  10s
-my-restore-11.1  10s
-my-restore-11.2  10s
+NAME                AGE
+my-backup-8.0.14    75s
+my-restore-8.0.14   75s
 ```
 
 Now, Stash is ready to backup MySQL database.
@@ -100,13 +85,13 @@ Now, Stash is ready to backup MySQL database.
 
 This section will demonstrate how to backup MySQL database. We are going to use [KubeDB](https://kubedb.com) to deploy a sample database. You can deploy your database using any method you want. We are using `KubeDB` because it automates some tasks that you have to do manually otherwise.
 
-### Deploy Sample PosgreSQL Database
+### Deploy Sample MySQL Database
 
 Let's deploy a sample MySQL database and insert some data into it.
 
 **Create MySQL CRD:**
 
-Below is the YAML of a sample MySQL crd that we are going to create for this tutorial:
+Below is the YAML of a sample MySQL CRD that we are going to create for this tutorial:
 
 ```yaml
 apiVersion: kubedb.com/v1alpha1
@@ -115,63 +100,63 @@ metadata:
   name: sample-mysql
   namespace: demo
 spec:
-  version: "11.2"
+  version: "8.0.14"
+  replicas: 1
   storageType: Durable
   storage:
-    storageClassName: "standard"
     accessModes:
       - ReadWriteOnce
     resources:
       requests:
-        storage: 1Gi
-  terminationPolicy: Delete
+        storage: 50Mi
+  terminationPolicy: WipeOut
 ```
 
-Create the above `MySQL` crd,
+Create the above `MySQL` CRD,
 
-```console
+```bash
 $ kubectl apply -f ./docs/examples/backup/mysql.yaml
 mysql.kubedb.com/sample-mysql created
 ```
 
-KubeDB will deploy a MySQL database according to the above specification. It will also create the necessary secrets and services to access the database.
+KubeDB will deploy a MySQL database according to the above specification. It will also create the necessary Secrets and Services to access the database.
 
 Let's check if the database is ready to use,
 
-```console
+```bash
 $ kubectl get my -n demo sample-mysql
-NAME              VERSION   STATUS    AGE
-sample-mysql   11.2      Running   3m11s
+NAME           VERSION   STATUS    AGE
+sample-mysql   8.0.14    Running   4m22s
 ```
 
 The database is `Running`. Verify that KubeDB has created a Secret and a Service for this database using the following commands,
 
-```console
+```bash
 $ kubectl get secret -n demo -l=kubedb.com/name=sample-mysql
-NAME                   TYPE     DATA   AGE
-sample-mysql-auth   Opaque   2      27h
+NAME                TYPE     DATA   AGE
+sample-mysql-auth   Opaque   2      4m58s
 
 $ kubectl get service -n demo -l=kubedb.com/name=sample-mysql
-NAME                       TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
-sample-mysql            ClusterIP   10.106.147.155   <none>        5432/TCP   22h
-sample-mysql-replicas   ClusterIP   10.96.231.122    <none>        5432/TCP   22h
+NAME               TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+sample-mysql       ClusterIP   10.101.2.138   <none>        3306/TCP   5m33s
+sample-mysql-gvr   ClusterIP   None           <none>        3306/TCP   5m33s
 ```
 
-Here, we have to use service `sample-mysql` and secret `sample-mysql-auth` to connect with the database. KubeDB creates an [AppBinding](https://appscode.com/products/stash/0.8.3/concepts/crds/appbinding/) crd that holds the necessary information to connect with the database.
+Here, we have to use service `sample-mysql` and secret `sample-mysql-auth` to connect with the database. KubeDB creates an [AppBinding](https://appscode.com/products/stash/0.8.3/concepts/crds/appbinding/) CRD that holds the necessary information to connect with the database.
 
 **Verify AppBinding:**
 
-Verify that the `AppBinding` has been created successfully using the following command,
+Verify that the AppBinding has been created successfully using the following command,
 
-```console
+```bash
 $ kubectl get appbindings -n demo
-NAME              AGE
-sample-mysql   20m
+NAME           AGE
+sample-mysql   9m24s
 ```
 
-Let's check the YAML of the above `AppBinding`,
+Let's check the YAML of the above AppBinding,
 
-```console
+```bash
 $ kubectl get appbindings -n demo sample-mysql -o yaml
 ```
 
@@ -179,44 +164,49 @@ $ kubectl get appbindings -n demo sample-mysql -o yaml
 apiVersion: appcatalog.appscode.com/v1alpha1
 kind: AppBinding
 metadata:
-  name: sample-mysql
-  namespace: demo
+  creationTimestamp: "2019-08-02T05:13:37Z"
+  generation: 1
   labels:
     app.kubernetes.io/component: database
     app.kubernetes.io/instance: sample-mysql
     app.kubernetes.io/managed-by: kubedb.com
     app.kubernetes.io/name: mysql
-    app.kubernetes.io/version: "11.2"
+    app.kubernetes.io/version: 8.0.14
     kubedb.com/kind: MySQL
     kubedb.com/name: sample-mysql
+  name: sample-mysql
+  namespace: demo
+  ownerReferences:
+  - apiVersion: kubedb.com/v1alpha1
+    blockOwnerDeletion: false
+    kind: MySQL
+    name: sample-mysql
+    uid: dab30216-485f-405a-af4f-09fe5f0ad88e
+  resourceVersion: "7970"
+  selfLink: /apis/appcatalog.appscode.com/v1alpha1/namespaces/demo/appbindings/sample-mysql
+  uid: d2a932e5-924f-4321-b206-7b9da534cf12
 spec:
   clientConfig:
     service:
       name: sample-mysql
       path: /
-      port: 5432
-      query: sslmode=disable
-      scheme: mysqlql
+      port: 3306
+      scheme: mysql
+    url: tcp(sample-mysql:3306)/
   secret:
     name: sample-mysql-auth
-  secretTransforms:
-    - renameKey:
-        from: POSTGRES_USER
-        to: username
-    - renameKey:
-        from: POSTGRES_PASSWORD
-        to: password
   type: kubedb.com/mysql
+  version: 8.0.14
 ```
 
-Stash uses the `AppBinding` crd to connect with the target database. It requires the following two fields to set in AppBinding's `Spec` section.
+Stash uses the AppBinding CRD to connect with the target database. It requires the following two fields to set in AppBinding's `.spec` section.
 
-- `spec.clientConfig.service.name` specifies the name of the service that connects to the database.
-- `spec.secret` specifies the name of the secret that holds necessary credentials to access the database.
+- `.spec.clientConfig.service.name` specifies the name of the Service that connects to the database.
+- `.spec.secret` specifies the name of the Secret that holds necessary credentials to access the database.
 
 **Creating AppBinding Manually:**
 
-If you deploy MySQL database without KubeDB, you have to create the AppBinding crd manually in the same namespace as the service and secret of the database.
+If you deploy MySQL database without KubeDB, you have to create the AppBinding CRD manually in the same namespace as the service and secret of the database.
 
 The following YAML shows a minimal AppBinding specification that you have to create if you deploy MySQL database without KubeDB.
 
@@ -224,82 +214,108 @@ The following YAML shows a minimal AppBinding specification that you have to cre
 apiVersion: appcatalog.appscode.com/v1alpha1
 kind: AppBinding
 metadata:
-  name: my-custom-appbinding
-  namespace: my-database-namespace
+  name: <my_custom_appbinding_name>
+  namespace: <my_database_namespace>
 spec:
   clientConfig:
     service:
-      name: my-database-service
-      port: 5432
+      name: <my_database_service_name>
+      port: <my_database_port_number>
   secret:
-    name: my-database-credentials-secret
+    name: <my_database_credentials_secret_name>
 ```
+
+You have to replace the `<...>` quoted part with proper values in the above YAML.
 
 **Insert Sample Data:**
 
-Now, we are going to exec into the database pod and create some sample data. At first, find out the database pod using the following command,
+Now, we are going to exec into the database pod and create some sample data. At first, find out the database Pod using the following command,
 
-```console
+```bash
 $ kubectl get pods -n demo --selector="kubedb.com/name=sample-mysql"
-NAME                READY   STATUS    RESTARTS   AGE
-sample-mysql-0   1/1     Running   0          8m58s
+NAME             READY   STATUS    RESTARTS   AGE
+sample-mysql-0   1/1     Running   0          33m
 ```
 
-Now, let's exec into the pod and create a table,
+And copy the user name and password of the `root` user to access into `mysql` shell.
 
-```console
-$ kubectl exec -it -n demo sample-mysql-0 sh
-# login as "mysql" superuser.
-/ # psql -U mysql
-psql (11.2)
-Type "help" for help.
+```bash
+$ kubectl get secret -n demo  sample-mysql-auth -o jsonpath='{.data.username}'| base64 -d
+root⏎
 
-# list available databases
-mysql=# \l
-                                 List of databases
-   Name    |  Owner   | Encoding |  Collate   |   Ctype    |   Access privileges
------------+----------+----------+------------+------------+-----------------------
- mysql  | mysql | UTF8     | en_US.utf8 | en_US.utf8 |
- template0 | mysql | UTF8     | en_US.utf8 | en_US.utf8 | =c/mysql          +
-           |          |          |            |            | mysql=CTc/mysql
- template1 | mysql | UTF8     | en_US.utf8 | en_US.utf8 | =c/mysql          +
-           |          |          |            |            | mysql=CTc/mysql
-(3 rows)
-
-# connect to "mysql" database
-mysql=# \c mysql
-You are now connected to database "mysql" as user "mysql".
-
-# create a table
-mysql=# CREATE TABLE COMPANY( NAME TEXT NOT NULL, EMPLOYEE INT NOT NULL);
-CREATE TABLE
-
-# list tables
-mysql=# \d
-          List of relations
- Schema |  Name   | Type  |  Owner
---------+---------+-------+----------
- public | company | table | mysql
-(1 row)
-
-# quit from the database
-mysql=# \q
-
-# exit from the pod
-/ # exit
+$ kubectl get secret -n demo  sample-mysql-auth -o jsonpath='{.data.password}'| base64 -d
+5HEqoozyjgaMO97N⏎
 ```
 
-Now, we are ready to backup this sample database.
+Now, let's exec into the Pod to enter into `mysql` shell and create a database and a table,
+
+```bash
+$ kubectl exec -it -n demo sample-mysql-0 -- mysql --user=root --password=5HEqoozyjgaMO97N
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 10
+Server version: 8.0.14 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> CREATE DATABASE playground;
+Query OK, 1 row affected (0.01 sec)
+
+mysql> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| playground         |
+| sys                |
++--------------------+
+5 rows in set (0.00 sec)
+
+mysql> CREATE TABLE playground.equipment ( id INT NOT NULL AUTO_INCREMENT, type VARCHAR(50), quant INT, color VARCHAR(25), PRIMARY KEY(id));
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> SHOW TABLES IN playground;
++----------------------+
+| Tables_in_playground |
++----------------------+
+| equipment            |
++----------------------+
+1 row in set (0.01 sec)
+
+mysql> INSERT INTO playground.equipment (type, quant, color) VALUES ("slide", 2, "blue");
+Query OK, 1 row affected (0.01 sec)
+
+mysql> SELECT * FROM playground.equipment;
++----+-------+-------+-------+
+| id | type  | quant | color |
++----+-------+-------+-------+
+|  1 | slide |     2 | blue  |
++----+-------+-------+-------+
+1 row in set (0.00 sec)
+
+mysql> exit
+Bye
+```
+
+Now, we are ready to backup the database.
 
 ### Prepare Backend
 
-We are going to store our backed up data into a GCS bucket. At first, we need to create a secret with GCS credentials then we need to create a `Repository` crd. If you want to use a different backend, please read the respective backend configuration doc from [here](https://appscode.com/products/stash/0.8.3/guides/backends/overview/).
+We are going to store our backed up data into a GCS bucket. At first, we need to create a secret with GCS credentials then we need to create a `Repository` CRD. If you want to use a different backend, please read the respective backend configuration doc from [here](https://appscode.com/products/stash/0.8.3/guides/backends/overview/).
 
 **Create Storage Secret:**
 
 Let's create a secret called `gcs-secret` with access credentials to our desired GCS bucket,
 
-```console
+```bash
 $ echo -n 'changeit' > RESTIC_PASSWORD
 $ echo -n '<your-project-id>' > GOOGLE_PROJECT_ID
 $ cat downloaded-sa-json.key > GOOGLE_SERVICE_ACCOUNT_JSON_KEY
@@ -312,7 +328,7 @@ secret/gcs-secret created
 
 **Create Repository:**
 
-Now, crete a `Respository` using this secret. Below is the YAML of Repository crd we are going to create,
+Now, crete a `Respository` using this secret. Below is the YAML of Repository CRD we are going to create,
 
 ```yaml
 apiVersion: stash.appscode.com/v1alpha1
@@ -330,8 +346,8 @@ spec:
 
 Let's create the `Repository` we have shown above,
 
-```console
-$ kubectl apply -f ./docs/examples/backup/repository.yaml
+```bash
+$ kubectl create -f ./docs/examples/backup/repository.yaml 
 repository.stash.appscode.com/gcs-repo created
 ```
 
@@ -339,11 +355,11 @@ Now, we are ready to backup our database to our desired backend.
 
 ### Backup
 
-We have to create a `BackupConfiguration` targeting respective AppBinding crd of our desired database. Then Stash will create a CronJob to periodically backup the database.
+We have to create a `BackupConfiguration` targeting respective AppBinding CRD of our desired database. Then Stash will create a CronJob to periodically backup the database.
 
 **Create BackupConfiguration:**
 
-Below is the YAML for `BackupConfiguration` crd to backup the `sample-mysql` database we have deployed earlier.,
+Below is the YAML for `BackupConfiguration` CRD to backup the `sample-mysql` database we have deployed earlier,
 
 ```yaml
 apiVersion: stash.appscode.com/v1beta1
@@ -354,7 +370,7 @@ metadata:
 spec:
   schedule: "*/5 * * * *"
   task:
-    name: my-backup-11.2
+    name: my-backup-8.0.14
   repository:
     name: gcs-repo
   target:
@@ -369,55 +385,55 @@ spec:
 
 Here,
 
-- `spec.schedule` specifies that we want to backup the database at 5 minutes interval.
-- `spec.task.name` specifies the name of the task crd that specifies the necessary Function and their execution order to backup a MySQL database.
-- `spec.target.ref` refers to the `AppBinding` crd that was created for `sample-mysql` database.
+- `.spec.schedule` specifies that we want to backup the database at 5 minutes interval.
+- `.spec.task.name` specifies the name of the Task CRD that specifies the necessary Functions and their execution order to backup a MySQL database.
+- `.spec.target.ref` refers to the AppBinding CRD that was created for `sample-mysql` database.
 
-Let's create the `BackupConfiguration` crd we have shown above,
+Let's create the `BackupConfiguration` CRD we have shown above,
 
-```console
-$ kubectl apply -f ./docs/examples/backup/backupconfiguration.yaml
+```bash
+$ kubectl create -f ./docs/examples/backup/backupconfiguration.yaml 
 backupconfiguration.stash.appscode.com/sample-mysql-backup created
 ```
 
 **Verify CronJob:**
 
-If everything goes well, Stash will create a CronJob with the schedule specified in `spec.schedule` field of `BackupConfiguration` crd.
+If everything goes well, Stash will create a CronJob with the schedule specified in `spec.schedule` field of `BackupConfiguration` CRD.
 
 Verify that the CronJob has been created using the following command,
 
-```console
+```bash
 $ kubectl get cronjob -n demo
-NAME                     SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
-sample-mysql-backup   */5 * * * *   False     0        <none>          61s
+NAME                  SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+sample-mysql-backup   */5 * * * *   False     0        <none>          27s
 ```
 
 **Wait for BackupSession:**
 
-The `sample-mysql-backup` CronJob will trigger a backup on each scheduled slot by creating a `BackupSession` crd.
+The `sample-mysql-backup` CronJob will trigger a backup on each scheduled slot by creating a `BackupSession` CRD.
 
-Wait for a schedule to appear. Run the following command to watch `BackupSession` crd,
+Wait for a schedule to appear. Run the following command to watch `BackupSession` CRD,
 
-```console
+```bash
 $ kubectl get backupsession -n demo -w
-NAME                                BACKUPCONFIGURATION      PHASE       AGE
-sample-mysql-backup-1560350521   sample-mysql-backup   Running     5m19s
-sample-mysql-backup-1560350521   sample-mysql-backup   Succeeded   5m45s
+NAME                             BACKUPCONFIGURATION   PHASE     AGE
+sample-mysql-backup-1564729507   sample-mysql-backup   Running   51s
+sample-mysql-backup-1564729507   sample-mysql-backup   Succeeded   51s
 ```
 
-We can see above that the backup session has succeeded. Now, we are going to verify that the backed up data has been stored in the backend.
+Here, the phase **`Succeeded`** means that the backupsession has been succeeded.
 
 **Verify Backup:**
 
-Once a backup is complete, Stash will update the respective `Repository` crd to reflect the backup completion. Check that the repository `gcs-repo` has been updated by the following command,
+Now, we are going to verify whether the backed up data is in the backend. Once a backup is completed, Stash will update the respective `Repository` CRD to reflect the backup completion. Check that the repository `gcs-repo` has been updated by the following command,
 
-```console
+```bash
 $ kubectl get repository -n demo gcs-repo
 NAME       INTEGRITY   SIZE        SNAPSHOT-COUNT   LAST-SUCCESSFUL-BACKUP   AGE
-gcs-repo   true        3.441 KiB   1                31s                      17m
+gcs-repo   true        6.815 MiB   2                3m39s                    30m
 ```
 
-Now, if we navigate to the GCS bucket, we are going to see backed up data has been stored in `demo/mysql/sample-mysql` directory as specified by `spec.backend.gcs.prefix` field of Repository crd.
+Now, if we navigate to the GCS bucket, we will see the backed up data has been stored in `demo/mysql/sample-mysql` directory as specified by `.spec.backend.gcs.prefix` field of Repository CRD.
 
 <figure align="center">
   <img alt="Backup data in GCS Bucket" src="/docs/images/sample-mysql-backup.png">
@@ -432,12 +448,12 @@ We are going to restore the database from the backup we have taken in the previo
 
 **Deploy Restored Database:**
 
-Now, we have to deploy the restored database similarly as we have deployed the original `sample-psotgres` database. However, this time there will be the following differences:
+Now, we have to deploy the restored database similarly as we have deployed the original `sample-mysql` database. However, this time there will be the following differences:
 
-- We have to use the same secret that was used in the original database. We are going to specify it using `spec.databaseSecret` field.
-- We have to specify `spec.init` section to tell KubeDB that we are going to use Stash to initialize this database from backup. KubeDB will keep the database phase to `Initializing` until Stash finishes its initialization.
+- We have to use the same secret that was used in the original database. We are going to specify it using `.spec.databaseSecret` field.
+- We have to specify `.spec.init` section to tell KubeDB that we are going to use Stash to initialize this database from backup. KubeDB will keep the database phase to **`Initializing`** until Stash finishes its initialization.
 
-Below is the YAML for `MySQL` crd we are going deploy to initialize from backup,
+Below is the YAML for `MySQL` CRD we are going deploy to initialize from backup,
 
 ```yaml
 apiVersion: kubedb.com/v1alpha1
@@ -446,57 +462,57 @@ metadata:
   name: restored-mysql
   namespace: demo
 spec:
-  version: "11.2"
-  storageType: Durable
+  version: "8.0.14"
   databaseSecret:
-    secretName: sample-mysql-auth # use same secret as original the database
+    secretName: sample-mysql-auth
+  replicas: 1
+  storageType: Durable
   storage:
-    storageClassName: "standard"
     accessModes:
       - ReadWriteOnce
     resources:
       requests:
-        storage: 1Gi
+        storage: 50Mi
   init:
     stashRestoreSession:
       name: sample-mysql-restore
-  terminationPolicy: Delete
+  terminationPolicy: WipeOut
 ```
 
 Here,
 
-- `spec.init.stashRestoreSession.name` specifies the `RestoreSession` crd name that we are going to use to restore this database.
+- `spec.init.stashRestoreSession.name` specifies the `RestoreSession` CRD name that we will use later to restore the database.
 
 Let's create the above database,
 
-```console
+```bash
 $ kubectl apply -f ./docs/examples/restore/restored-mysql.yaml
 mysql.kubedb.com/restored-mysql created
 ```
 
-If you check the database status, you will see it is stuck in `Initializing` state.
+If you check the database status, you will see it is stuck in **`Initializing`** state.
 
-```console
+```bash
 $ kubectl get my -n demo restored-mysql
-NAME                VERSION   STATUS         AGE
-restored-mysql   11.2      Initializing   3m21s
+NAME             VERSION   STATUS         AGE
+restored-mysql   8.0.14    Initializing   61s
 ```
 
 **Create RestoreSession:**
 
-Now, we need to create a `RestoreSession` crd pointing to the AppBinding for this restored database.
+Now, we need to create a RestoreSession CRD pointing to the AppBinding for this restored database.
 
-Check AppBinding has been created for the `restored-mysql` database using the following command,
+Using the following command, check that another AppBinding object has been created for the `restored-mysql` object,
 
-```console
+```bash
 $ kubectl get appbindings -n demo restored-mysql
-NAME                AGE
-restored-mysql   9m59s
+NAME             AGE
+restored-mysql   6m6s
 ```
 
 > If you are not using KubeDB to deploy database, create the AppBinding manually.
 
-Below is the YAML for the `RestoreSession` crd that we are going to create to restore backed up data into `restored-mysql` database.
+Below is the contents of YAML file of the RestoreSession CRD that we are going to create to restore backed up data into the newly created database provisioned by MySQL CRD named `restored-mysql`.
 
 ```yaml
 apiVersion: stash.appscode.com/v1beta1
@@ -508,7 +524,7 @@ metadata:
     kubedb.com/kind: MySQL # this label is mandatory if you are using KubeDB to deploy the database.
 spec:
   task:
-    name: my-restore-11.2
+    name: my-restore-8.0.14
   repository:
     name: gcs-repo
   target:
@@ -522,109 +538,138 @@ spec:
 
 Here,
 
-- `metadata.labels` specifies a `kubedb.com/kind: MySQL` label that is used by KubeDB to watch this `RestoreSession`.
-- `spec.task.name` specifies the name of the `Task` crd that specifies the Functions and their execution order to restore a MySQL database.
-- `spec.repository.name` specifies the `Repository` crd that holds the backend information where our backed up data has been stored.
-- `spec.target.ref` refers to the AppBinding crd for the `restored-mysql` database.
-- `spec.rules` specifies that we are restoring from the latest backup snapshot of the database.
+- `.metadata.labels` specifies a `kubedb.com/kind: MySQL` label that is used by KubeDB to watch this RestoreSession object.
+- `.spec.task.name` specifies the name of the Task CRD that specifies the necessary Functions and their execution order to restore a MySQL database.
+- `.spec.repository.name` specifies the Repository CRD that holds the backend information where our backed up data has been stored.
+- `.spec.target.ref` refers to the newly created AppBinding object for the `restored-mysql` MySQL object.
+- `.spec.rules` specifies that we are restoring data from the latest backup snapshot of the database.
 
-> **Warning:** Label `kubedb.com/kind: MySQL` is mandatory if you are using KubeDB to deploy the database. Otherwise, the database will be stuck in `Initializing` state.
+> **Warning:** Label `kubedb.com/kind: MySQL` is mandatory if you are using KubeDB to deploy the database. Otherwise, the database will be stuck in **`Initializing`** state.
 
-Let's create the `RestoreSession` crd we have shown above,
+Let's create the RestoreSession CRD object we have shown above,
 
-```console
+```bash
 $ kubectl apply -f ./docs/examples/restore/restoresession.yaml
 restoresession.stash.appscode.com/sample-mysql-restore created
 ```
 
-Once, you have created the `RestoreSession` crd, Stash will create a restore job. We can watch the `RestoreSession` phase to check if the restore process has succeeded or not.
+Once, you have created the RestoreSession object, Stash will create a restore Job. We can watch the phase of the RestoreSession object to check whether the restore process has succeeded or not.
 
-Run the following command to watch `RestoreSession` phase,
+Run the following command to watch the phase of the RestoreSession object,
 
-```console
+```bash
 $ kubectl get restoresession -n demo sample-mysql-restore -w
-NAME                      REPOSITORY-NAME   PHASE       AGE
-sample-mysql-restore   gcs-repo          Running     5s
-sample-mysql-restore   gcs-repo          Succeeded   43s
+NAME                   REPOSITORY-NAME   PHASE       AGE
+sample-mysql-restore   gcs-repo          Running     3m15s
+sample-mysql-restore   gcs-repo          Succeeded   3m28s
 ```
 
-So, we can see from the output of the above command that the restore process succeeded.
+Here, we can see from the output of the above command that the restore process succeeded.
 
 **Verify Restored Data:**
 
-In this section, we are going to verify that the desired data has been restored successfully. We are going to connect to the database and check whether the table we had created in the original database is restored or not.
+In this section, we are going to verify whether the desired data has been restored successfully. We are going to connect to the database server and check whether the database and the table we created earlier in the original database are restored.
 
-At first, check if the database has gone into `Running` state by the following command,
+At first, check if the database has gone into **`Running`** state by the following command,
 
-```console
+```bash
 $ kubectl get my -n demo restored-mysql
-NAME                VERSION   STATUS    AGE
-restored-mysql   11.2      Running   2m16s
+NAME             VERSION   STATUS    AGE
+restored-mysql   8.0.14    Running   34m
 ```
 
-Now, find out the database pod by the following command,
+Now, find out the database Pod by the following command,
 
-```console
+```bash
 $ kubectl get pods -n demo --selector="kubedb.com/name=restored-mysql"
-NAME                  READY   STATUS    RESTARTS   AGE
-restored-mysql-0   1/1     Running   0          3m15s
+NAME               READY   STATUS    RESTARTS   AGE
+restored-mysql-0   1/1     Running   0          39m
 ```
 
-Now, exec into the database pod and list available tables,
+And then copy the user name and password of the `root` user to access into `mysql` shell.
 
-```console
-$ kubectl exec -it -n demo restored-mysql-0 sh
-# login as "mysql" superuser.
-/ # psql -U mysql
-psql (11.2)
-Type "help" for help.
+> Notice: We used the same Secret for the `restored-mysql` object. So, we will use the same commands as before.
 
-# list available databases
-mysql=# \l
-                                 List of databases
-   Name    |  Owner   | Encoding |  Collate   |   Ctype    |   Access privileges
------------+----------+----------+------------+------------+-----------------------
- mysql  | mysql | UTF8     | en_US.utf8 | en_US.utf8 |
- template0 | mysql | UTF8     | en_US.utf8 | en_US.utf8 | =c/mysql          +
-           |          |          |            |            | mysql=CTc/mysql
- template1 | mysql | UTF8     | en_US.utf8 | en_US.utf8 | =c/mysql          +
-           |          |          |            |            | mysql=CTc/mysql
-(3 rows)
+```bash
+$ kubectl get secret -n demo  sample-mysql-auth -o jsonpath='{.data.username}'| base64 -d
+root⏎
 
-# connect to "mysql" database
-mysql=# \c mysql
-You are now connected to database "mysql" as user "mysql".
-
-# check the table we had created in the original database has been restored here
-mysql=# \d
-          List of relations
- Schema |  Name   | Type  |  Owner
---------+---------+-------+----------
- public | company | table | mysql
-(1 row)
-
-# quit from the database
-mysql=# \q
-
-# exit from the pod
-/ # exit
+$ kubectl get secret -n demo  sample-mysql-auth -o jsonpath='{.data.password}'| base64 -d
+5HEqoozyjgaMO97N⏎
 ```
 
-So, from the above output, we can see the table `company` that we had created in the original database `sample-mysql` is restored in the restored database `restored-mysql`.
+Now, let's exec into the Pod to enter into `mysql` shell and create a database and a table,
+
+```bash
+$ kubectl exec -it -n demo restored-mysql-0 -- mysql --user=root --password=5HEqoozyjgaMO97N
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 9
+Server version: 8.0.14 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| playground         |
+| sys                |
++--------------------+
+5 rows in set (0.00 sec)
+
+mysql> SHOW TABLES IN playground;
++----------------------+
+| Tables_in_playground |
++----------------------+
+| equipment            |
++----------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM playground.equipment;
++----+-------+-------+-------+
+| id | type  | quant | color |
++----+-------+-------+-------+
+|  1 | slide |     2 | blue  |
++----+-------+-------+-------+
+1 row in set (0.00 sec)
+
+mysql> exit
+Bye
+```
+
+So, from the above output, we can see that the `playground` database and the `equipment` table we created earlier in the original database and now, they are restored successfully.
 
 ## Cleanup
 
 To cleanup the Kubernetes resources created by this tutorial, run:
 
-```console
-kubectl delete restoresession -n demo sample-mysql-restore
-kubectl delete backupconfiguration -n demo sample-mysql-backup
-kubectl delete my -n demo restored-mysql
-kubectl delete my -n demo sample-mysql
+```bash
+$ kubectl delete restoresession -n demo sample-mysql-restore
+restoresession.stash.appscode.com "restore-sample-mysql" deleted
+
+$ kubectl delete backupconfiguration -n demo sample-mysql-backup
+backupconfiguration.stash.appscode.com "sample-mysql-backup" deleted
+
+$ kubectl delete my -n demo restored-mysql
+mysql.kubedb.com "restored-mysql" deleted
+
+$ kubectl delete my -n demo sample-mysql
+mysql.kubedb.com "sample-mysql" deleted
 ```
 
 To uninstall `mysql-catalog` chart, run the following command,
 
-```console
-helm delete mysql-catalog
+```bash
+$ helm delete mysql-catalog --purge
+release "mysql-catalog" deleted
 ```
