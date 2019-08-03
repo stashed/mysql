@@ -3,7 +3,7 @@ kind: Function
 metadata:
   name: my-restore-{{- .Chart.Version }}
   labels:
-    {{- include "mysql-stash.labels" . | nindent 4 }}
+    {{- include "stash-mysql.labels" . | nindent 4 }}
 spec:
   image: {{ .Values.docker.registry }}/{{ .Values.docker.image }}:{{ .Values.docker.tag }}
   args:
