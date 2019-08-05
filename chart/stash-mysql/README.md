@@ -1,4 +1,4 @@
-# Stash-mysql
+# stash-mysql
 
 [stash-mysql](https://github.com/stashed/mysql) - MySQL database backup/restore plugin for [Stash by AppsCode](https://appscode.com/products/stash/).
 
@@ -57,10 +57,10 @@ The following table lists the configurable parameters of the `stash-mysql` chart
 |     Parameter     |                                                                    Description                                                                     |      Default      |
 | :---------------: | -------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------: |
 | `docker.registry` | Docker registry used to pull respective images                                                                                                     |     `stashed`     |
-|  `docker.image`   | Docker image used to take backup of MySQL databases and restore them                                                                               |   `stash-mysql`   |
-|   `docker.tag`    | Tag of the image that is used to take backup of MySQL databases and restore them. This is usually same as the database version it can take backup. |       `8.0`       |
-|  `backup.myArgs`  | Optional arguments to pass to `mysqldump` command  for bakcup                                                                                      | `--all-databases` |
-| `restore.myArgs`  | Optional arguments to pass to `mysql` command for restoration                                                                                      |        ""         |
+| `docker.image`    | Docker image used to take backup of MySQL databases and restore them                                                                               |   `stash-mysql`   |
+| `docker.tag`      | Tag of the image that is used to take backup of MySQL databases and restore them. This is usually same as the database version it can take backup. |       `8.0`       |
+| `backup.myArgs`   | Optional arguments to pass to `mysqldump` command  during bakcup process                                                                           | `--all-databases` |
+| `restore.myArgs`  | Optional arguments to pass to `mysql` command during restore process                                                                               |        ""         |
 | `metrics.enabled` | Specifies whether to send Prometheus metrics                                                                                                       |      `true`       |
 | `metrics.labels`  | Optional comma separated labels to add to the Prometheus metrics                                                                                   |        []         |
 
