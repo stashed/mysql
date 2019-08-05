@@ -95,7 +95,7 @@ Once installed, this will create `mysql-backup-*` and `mysql-restore-*` Function
 ```console
 $ kubectl get functions.stash.appscode.com
 NAME                    AGE
-mysql-backup-8          20s
+mysql-backup-8.0.14     20s
 mysql-backup-5.7        20s
 pvc-backup              7h6m
 pvc-restore             7h6m
@@ -107,7 +107,7 @@ Also, verify that the necessary `Task` have been created.
 ```console
 $ kubectl get tasks.stash.appscode.com
 NAME                    AGE
-mysql-backup-8          2m7s
+mysql-backup-8.0.14     2m7s
 mysql-backup-5.7        2m7s
 pvc-backup              7h7m
 pvc-restore             7h7m
@@ -386,7 +386,7 @@ spec:
 Let's create the `Repository` we have shown above,
 
 ```bash
-$ kubectl create -f ./docs/examples/backup/repository.yaml 
+$ kubectl create -f ./docs/examples/backup/repository.yaml
 repository.stash.appscode.com/gcs-repo created
 ```
 
@@ -409,7 +409,7 @@ metadata:
 spec:
   schedule: "*/5 * * * *"
   task:
-    name: mysql-backup-8
+    name: mysql-backup-8.0.14
   repository:
     name: gcs-repo
   target:
@@ -431,7 +431,7 @@ Here,
 Let's create the `BackupConfiguration` CRD we have shown above,
 
 ```bash
-$ kubectl create -f ./docs/examples/backup/backupconfiguration.yaml 
+$ kubectl create -f ./docs/examples/backup/backupconfiguration.yaml
 backupconfiguration.stash.appscode.com/sample-mysql-backup created
 ```
 
@@ -501,7 +501,7 @@ Now, wait for a moment. Stash will pause the BackupConfiguration. Verify that th
 ```console
 $ kubectl get backupconfiguration -n demo sample-mysql-backup
 NAME                 TASK                  SCHEDULE      PAUSED   AGE
-sample-mysql-backup  mysql-backup-8        */5 * * * *   true     26m
+sample-mysql-backup  mysql-backup-8.0.14   */5 * * * *   true     26m
 ```
 
 Notice the `PAUSED` column. Value `true` for this field means that the BackupConfiguration has been paused.
@@ -584,7 +584,7 @@ metadata:
     kubedb.com/kind: MySQL # this label is mandatory if you are using KubeDB to deploy the database.
 spec:
   task:
-    name: mysql-restore-8
+    name: mysql-restore-8.0.14
   repository:
     name: gcs-repo
   target:

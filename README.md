@@ -10,22 +10,22 @@ MySQL backup and restore plugin for [Stash by AppsCode](https://appscode.com/pro
 
 ## Install
 
-Install MySQL 8.0 backup or restore plugin for Stash as below.
+Install MySQL 8.0.14 backup or restore plugin for Stash as below.
 
 ```console
 helm repo add appscode https://charts.appscode.com/stable/
 helm repo update
-helm install appscode/stash-mysql --name=stash-mysql-8.0 --version=8.0
+helm install appscode/stash-mysql --name=stash-mysql-8.0.14 --version=8.0.14
 ```
 
 To install catalog for all supported MySQL versions, please visit [here](https://github.com/stashed/catalog).
 
 ## Uninstall
 
-Uninstall MySQL 8.0 backup or restore plugin for Stash as below.
+Uninstall MySQL 8.0.14 backup or restore plugin for Stash as below.
 
 ```console
-helm delete stash-mysql-8.0
+helm delete stash-mysql-8.0.14
 ```
 
 ## Support
