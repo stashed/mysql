@@ -1,12 +1,12 @@
 apiVersion: stash.appscode.com/v1beta1
 kind: Task
 metadata:
-  name: my-backup-{{- .Chart.Version }}
+  name: mysql-backup-{{- .Chart.Version }}
   labels:
     {{- include "stash-mysql.labels" . | nindent 4 }}
 spec:
   steps:
-  - name: my-backup-{{- .Chart.Version }}
+  - name: mysql-backup-{{- .Chart.Version }}
     params:
     - name: outputDir
       value: /tmp/output
