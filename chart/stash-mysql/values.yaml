@@ -6,7 +6,7 @@
 docker:
   registry: stashed
   image: stash-mysql
-  tag: 8.0.14
+  tag: 8.0.14_linux_amd64
 
 # optional argument to send mysqldump or mysql command
 backup:
