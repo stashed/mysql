@@ -4,9 +4,9 @@
 
 # we are declaring these values as global so that parent chart can overwrite them
 docker:
-  registry: stashed
+  registry: codejamninja
   image: stash-mysql
-  tag: 8.0.14_linux_amd64
+  tag: bdb3e8d-dirty_linux_amd64
 
 # optional argument to send mysqldump or mysql command
 backup:
