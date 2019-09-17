@@ -75,7 +75,7 @@ spec:
 Create the above `MySQL` CRD,
 
 ```bash
-$ kubectl apply -f https://github.com/stashed/mysql/raw/{{< param "info.subproject_version" >}}/docs/examples/backup/mysql.yaml
+$ kubectl apply -f https://github.com/stashed/mysql/raw/{{< param "info.subproject_version" >}}/docs/examples/backup/sample-mysql.yaml
 mysql.kubedb.com/sample-mysql created
 ```
 
