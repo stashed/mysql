@@ -401,7 +401,7 @@ gcs-repo   true        6.815 MiB   2                3m39s                    30m
 Now, if we navigate to the GCS bucket, we will see the backed up data has been stored in `demo/mysql/sample-mysql` directory as specified by `.spec.backend.gcs.prefix` field of Repository CRD.
 
 <figure align="center">
-  <img alt="Backup data in GCS Bucket" src="./images/sample-mysql-backup.png">
+  <img alt="Backup data in GCS Bucket" src="../images/sample-mysql-backup.png">
   <figcaption align="center">Fig: Backup data in GCS Bucket</figcaption>
 </figure>
 
