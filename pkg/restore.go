@@ -139,10 +139,8 @@ func (opt *mysqlOptions) restoreMySQL() (*restic.RestoreOutput, error) {
 			"-h", appBinding.Spec.ClientConfig.Service.Name,
 		},
 	}
-	if opt.myArgs != "" {
-		for _, arg := range strings.Fields(opt.myArgs) {
-			opt.dumpOptions.StdoutPipeCommand.Args = append(opt.dumpOptions.StdoutPipeCommand.Args, arg)
-		}
+	for _, arg := range strings.Fields(opt.myArgs) {
+		opt.dumpOptions.StdoutPipeCommand.Args = append(opt.dumpOptions.StdoutPipeCommand.Args, arg)
 	}
 
 	// wait for DB ready

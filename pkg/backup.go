@@ -148,10 +148,8 @@ func (opt *mysqlOptions) backupMySQL() (*restic.BackupOutput, error) {
 			"-h", appBinding.Spec.ClientConfig.Service.Name,
 		},
 	}
-	if opt.myArgs != "" {
-		for _, arg := range strings.Fields(opt.myArgs) {
-			opt.backupOptions.StdinPipeCommand.Args = append(opt.backupOptions.StdinPipeCommand.Args, arg)
-		}
+	for _, arg := range strings.Fields(opt.myArgs) {
+		opt.backupOptions.StdinPipeCommand.Args = append(opt.backupOptions.StdinPipeCommand.Args, arg)
 	}
 
 	// wait for DB ready
