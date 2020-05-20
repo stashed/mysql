@@ -63,9 +63,5 @@ func waitForDBReady(appBinding *v1alpha1.AppBinding, secret *core.Secret, waitTi
 		"--user=root",
 		fmt.Sprintf("--wait=%d", waitTimeout),
 	}
-	err := shell.Command("mysqladmin", args...).Run()
-	if err != nil {
-		return err
-	}
-	return nil
+	return shell.Command("mysqladmin", args...).Run()
 }
