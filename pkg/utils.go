@@ -53,7 +53,7 @@ type mysqlOptions struct {
 
 func waitForDBReady(host string, port int32) {
 	log.Infoln("Checking database connection")
-	cmd := fmt.Sprintf(`nc "%s" "%d" -w 30`, host, port)
+	cmd := fmt.Sprintf(`nc "%s" "%d" -w 300`, host, port)
 	for {
 		if err := exec.Command(cmd).Run(); err != nil {
 			break
