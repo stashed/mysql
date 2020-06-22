@@ -12,7 +12,7 @@ $ helm install stash-mysql-5.7.25 appscode/stash-mysql -n kube-system --version=
 
 ## Introduction
 
-This chart deploys necessary `Function` and `Task` definition to backup or restore MySQL database 5.7.25 using Stash on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
+This chart deploys necessary `Function` and `Task` definition to backup or restore MySQL 5.7.25 using Stash on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
 ## Prerequisites
 
@@ -26,7 +26,7 @@ To install the chart with the release name `stash-mysql-5.7.25`:
 $ helm install stash-mysql-5.7.25 appscode/stash-mysql -n kube-system --version=5.7.25
 ```
 
-The command deploys necessary `Function` and `Task` definition to backup or restore MySQL database 5.7.25 using Stash on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
+The command deploys necessary `Function` and `Task` definition to backup or restore MySQL 5.7.25 using Stash on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
 
 > **Tip**: List all releases using `helm list`
 
