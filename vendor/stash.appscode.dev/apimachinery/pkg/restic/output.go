@@ -32,8 +32,8 @@ import (
 const FileModeRWXAll = 0777
 
 type BackupOutput struct {
-	// HostBackupStats shows backup statistics of a host
-	HostBackupStats []api_v1beta1.HostBackupStats `json:"hostBackupStats,omitempty"`
+	// BackupTargetStatus shows the status of a backup target
+	BackupTargetStatus api_v1beta1.BackupTargetStatus `json:"targetStatus,omitempty"`
 	// RepositoryStats shows statistics of repository after last backup
 	RepositoryStats RepositoryStats `json:"repository,omitempty"`
 }
@@ -50,8 +50,8 @@ type RepositoryStats struct {
 }
 
 type RestoreOutput struct {
-	// HostRestoreStats shows restore statistics of a host
-	HostRestoreStats []api_v1beta1.HostRestoreStats `json:"hostRestoreStats,omitempty"`
+	// RestoreTargetStatus shows the status of a restore target
+	RestoreTargetStatus api_v1beta1.RestoreMemberStatus `json:"targetStatus,omitempty"`
 }
 
 // WriteOutput write output of backup process into output.json file in the directory

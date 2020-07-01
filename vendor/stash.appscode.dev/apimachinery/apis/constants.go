@@ -54,6 +54,12 @@ const (
 	TargetAppResource = "TARGET_APP_RESOURCE"
 	TargetAppReplicas = "TARGET_APP_REPLICAS"
 
+	InvokerKind = "INVOKER_KIND"
+	InvokerName = "INVOKER_NAME"
+
+	ExcludePatterns = "EXCLUDE_PATTERNS"
+	IncludePatterns = "INCLUDE_PATTERNS"
+
 	RestorePaths     = "RESTORE_PATHS"
 	RestoreSnapshots = "RESTORE_SNAPSHOTS"
 
@@ -146,13 +152,13 @@ const (
 	DefaultHost         = "host-0"
 )
 
-// Prometheus metrics related constants
+// ==================== Prometheus metrics related constants ============
 const (
 	PromJobStashBackup  = "stash-backup"
 	PromJobStashRestore = "stash-restore"
 )
 
-// RBAC related constants
+// ==================== RBAC related constants ==========================
 const (
 	KindRole        = "Role"
 	KindClusterRole = "ClusterRole"
@@ -168,8 +174,58 @@ const (
 	StashStorageClassReaderClusterRole     = "stash-sc-reader"
 )
 
-// Condition related constants
+// ================== Condition related constants ===========================
+// Condition Types Related Constants
 const (
+	// RepositoryFound indicates whether the respective Repository object was found or not.
+	RepositoryFound = "RepositoryFound"
+	// BackendSecretFound indicates whether the respective backend secret was found or not.
+	BackendSecretFound = "BackendSecretFound"
+
+	// BackupTargetFound indicates whether the backup target was found
+	BackupTargetFound = "BackupTargetFound"
+	// StashSidecarInjected indicates whether stash sidecar was injected into the targeted workload
+	// This condition is applicable only for sidecar model
+	StashSidecarInjected = "StashSidecarInjected"
+	// CronJobCreated indicates whether the backup triggering CronJob was created
+	CronJobCreated = "CronJobCreated"
+
+	// RestoreTargetFound indicates whether the restore target was found
+	RestoreTargetFound = "RestoreTargetFound"
+	// StashInitContainerInjected indicates whether stash init-container was injected into the targeted workload
+	// This condition is applicable only for sidecar model
+	StashInitContainerInjected = "StashInitContainerInjected"
+	// RestoreJobCreated indicates whether the restore job was created
+	RestoreJobCreated = "RestoreJobCreated"
+
+	// GlobalPreBackupHookSucceeded indicates whether the global PreBackupHook was executed successfully or not
+	GlobalPreBackupHookSucceeded = "GlobalPreBackupHookSucceeded"
+	// GlobalPostBackupHookSucceeded indicates whether the global PostBackupHook was executed successfully or not
+	GlobalPostBackupHookSucceeded = "GlobalPostBackupHookSucceeded"
+	// GlobalPreRestoreHookSucceeded indicates whether the global PreRestoreHook was executed successfully or not
+	GlobalPreRestoreHookSucceeded = "GlobalPreRestoreHookSucceeded"
+	// GlobalPostRestoreHookSucceeded indicates whether the global PostRestoreHook was executed successfully or not
+	GlobalPostRestoreHookSucceeded = "GlobalPostRestoreHookSucceeded"
+)
+
+// Condition Reason Related Constants
+const (
+	// RepositoryAvailable indicates that the condition transitioned to this state because the Repository was available
+	RepositoryAvailable = "RepositoryAvailable"
+	// RepositoryNotAvailable indicates that the condition transitioned to this state because the Repository was not available
+	RepositoryNotAvailable = "RepositoryNotAvailable"
+	// UnableToCheckRepositoryAvailability indicates that the condition transitioned to this state because operator was unable
+	// to check the Repository availability
+	UnableToCheckRepositoryAvailability = "UnableToCheckRepositoryAvailability"
+
+	// BackendSecretAvailable indicates that the condition transitioned to this state because the backend Secret was available
+	BackendSecretAvailable = "BackendSecretAvailable"
+	// BackendSecretNotAvailable indicates that the condition transitioned to this state because the backend Secret was not available
+	BackendSecretNotAvailable = "BackendSecretNotAvailable"
+	// UnableToCheckBackendSecretAvailability indicates that the condition transitioned to this state because operator was unable
+	// to check the backend Secret availability
+	UnableToCheckBackendSecretAvailability = "UnableToCheckBackendSecretAvailability"
+
 	// TargetAvailable indicates that the condition transitioned to this state because the target was available
 	TargetAvailable = "TargetAvailable"
 	// TargetNotAvailable indicates that the condition transitioned to this state because the target was not available
@@ -201,4 +257,24 @@ const (
 	RestoreJobCreationSucceeded = "RestoreJobCreationSucceeded"
 	// RestoreJobCreationFailed indicates that the condition transitioned to this state because operator was unable to create restore job
 	RestoreJobCreationFailed = "RestoreJobCreationFailed"
+
+	// GlobalPreBackupHookExecutedSuccessfully indicates that the condition transitioned to this state because the global PreBackupHook was executed successfully
+	GlobalPreBackupHookExecutedSuccessfully = "GlobalPreBackupHookExecutedSuccessfully"
+	// GlobalPreBackupHookExecutionFailed indicates that the condition transitioned to this state because the Stash was unable to execute global PreBackupHook
+	GlobalPreBackupHookExecutionFailed = "GlobalPreBackupHookExecutionFailed"
+
+	// GlobalPostBackupHookExecutedSuccessfully indicates that the condition transitioned to this state because the global PostBackupHook was executed successfully
+	GlobalPostBackupHookExecutedSuccessfully = "GlobalPostBackupHookExecutedSuccessfully"
+	// GlobalPostBackupHookExecutionFailed indicates that the condition transitioned to this state because the Stash was unable to execute global PostBackupHook
+	GlobalPostBackupHookExecutionFailed = "GlobalPostBackupHookExecutionFailed"
+
+	// GlobalPreRestoreHookExecutedSuccessfully indicates that the condition transitioned to this state because the global PreRestoreHook was executed successfully
+	GlobalPreRestoreHookExecutedSuccessfully = "GlobalPreRestoreHookExecutedSuccessfully"
+	// GlobalPreRestoreHookExecutionFailed indicates that the condition transitioned to this state because the Stash was unable to execute global PreRestoreHook
+	GlobalPreRestoreHookExecutionFailed = "GlobalPreRestoreHookExecutionFailed"
+
+	// GlobalPostRestoreHookExecutedSuccessfully indicates that the condition transitioned to this state because the global PostRestoreHook was executed successfully
+	GlobalPostRestoreHookExecutedSuccessfully = "GlobalPostRestoreHookExecutedSuccessfully"
+	// GlobalPostRestoreHookExecutionFailed indicates that the condition transitioned to this state because the Stash was unable to execute global PostRestoreHook
+	GlobalPostRestoreHookExecutionFailed = "GlobalPostRestoreHookExecutionFailed"
 )

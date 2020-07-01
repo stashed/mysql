@@ -18,6 +18,7 @@ package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kmapi "kmodules.xyz/client-go/api/v1"
 )
 
 const (
@@ -73,6 +74,7 @@ const (
 type TargetPhase string
 
 const (
+	TargetBackupPending   TargetPhase = "Pending"
 	TargetBackupSucceeded TargetPhase = "Succeeded"
 	TargetBackupRunning   TargetPhase = "Running"
 	TargetBackupFailed    TargetPhase = "Failed"
@@ -87,11 +89,14 @@ type BackupSessionStatus struct {
 	// +optional
 	SessionDuration string `json:"sessionDuration,omitempty" protobuf:"bytes,2,opt,name=sessionDuration"`
 	// Targets specify the backup status of individual targets
-	// optional
-	Targets []Target `json:"targets,omitempty" protobuf:"bytes,3,rep,name=targets"`
+	// +optional
+	Targets []BackupTargetStatus `json:"targets,omitempty" protobuf:"bytes,3,rep,name=targets"`
+	// Conditions shows condition of different operations/steps of the backup process
+	// +optional
+	Conditions []kmapi.Condition `json:"conditions,omitempty" protobuf:"bytes,4,rep,name=conditions"`
 }
 
-type Target struct {
+type BackupTargetStatus struct {
 	// Ref refers to the backup target
 	// +optional
 	Ref TargetRef `json:"ref,omitempty" protobuf:"bytes,1,opt,name=ref"`

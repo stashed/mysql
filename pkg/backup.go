@@ -29,6 +29,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	appcatalog "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
 	appcatalog_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
 	v1 "kmodules.xyz/offshoot-api/api/v1"
 )
@@ -72,15 +73,23 @@ func NewCmdBackup() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			targetRef := api_v1beta1.TargetRef{
+				APIVersion: appcatalog.SchemeGroupVersion.String(),
+				Kind:       appcatalog.ResourceKindApp,
+				Name:       opt.appBindingName,
+			}
 			var backupOutput *restic.BackupOutput
-			backupOutput, err = opt.backupMySQL()
+			backupOutput, err = opt.backupMySQL(targetRef)
 			if err != nil {
 				backupOutput = &restic.BackupOutput{
-					HostBackupStats: []api_v1beta1.HostBackupStats{
-						{
-							Hostname: opt.backupOptions.Host,
-							Phase:    api_v1beta1.HostBackupFailed,
-							Error:    err.Error(),
+					BackupTargetStatus: api_v1beta1.BackupTargetStatus{
+						Ref: targetRef,
+						Stats: []api_v1beta1.HostBackupStats{
+							{
+								Hostname: opt.backupOptions.Host,
+								Phase:    api_v1beta1.HostBackupFailed,
+								Error:    err.Error(),
+							},
 						},
 					},
 				}
@@ -130,7 +139,7 @@ func NewCmdBackup() *cobra.Command {
 	return cmd
 }
 
-func (opt *mysqlOptions) backupMySQL() (*restic.BackupOutput, error) {
+func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.BackupOutput, error) {
 	// apply nice, ionice settings from env
 	var err error
 	opt.setupOptions.Nice, err = v1.NiceSettingsFromEnv()
@@ -186,5 +195,5 @@ func (opt *mysqlOptions) backupMySQL() (*restic.BackupOutput, error) {
 	}
 
 	// Run backup
-	return resticWrapper.RunBackup(opt.backupOptions)
+	return resticWrapper.RunBackup(opt.backupOptions, targetRef)
 }
