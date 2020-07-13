@@ -174,8 +174,7 @@ const (
 	StashStorageClassReaderClusterRole     = "stash-sc-reader"
 )
 
-// ================== Condition related constants ===========================
-// Condition Types Related Constants
+// ================== Condition Types Related Constants ===========================
 const (
 	// RepositoryFound indicates whether the respective Repository object was found or not.
 	RepositoryFound = "RepositoryFound"
@@ -206,9 +205,18 @@ const (
 	GlobalPreRestoreHookSucceeded = "GlobalPreRestoreHookSucceeded"
 	// GlobalPostRestoreHookSucceeded indicates whether the global PostRestoreHook was executed successfully or not
 	GlobalPostRestoreHookSucceeded = "GlobalPostRestoreHookSucceeded"
+
+	// BackendRepositoryInitialized indicates that whether backend repository was initialized or not
+	BackendRepositoryInitialized = "BackendRepositoryInitialized"
+	// RetentionPolicyApplied indicates that whether the retention policies were applied or not
+	RetentionPolicyApplied = "RetentionPolicyApplied"
+	// RepositoryIntegrityVerified indicates whether the repository integrity check succeeded or not
+	RepositoryIntegrityVerified = "RepositoryIntegrityVerified"
+	// RepositoryMetricsPushed whether the Repository metrics for this backup session were pushed or not
+	RepositoryMetricsPushed = "RepositoryMetricsPushed"
 )
 
-// Condition Reason Related Constants
+// ================== Condition Types Related Constants ===========================
 const (
 	// RepositoryAvailable indicates that the condition transitioned to this state because the Repository was available
 	RepositoryAvailable = "RepositoryAvailable"
@@ -277,4 +285,32 @@ const (
 	GlobalPostRestoreHookExecutedSuccessfully = "GlobalPostRestoreHookExecutedSuccessfully"
 	// GlobalPostRestoreHookExecutionFailed indicates that the condition transitioned to this state because the Stash was unable to execute global PostRestoreHook
 	GlobalPostRestoreHookExecutionFailed = "GlobalPostRestoreHookExecutionFailed"
+
+	// BackendRepositoryFound indicates that the condition transitioned to this state because the restic repository was found in the backend
+	BackendRepositoryFound = "BackendRepositoryFound"
+	// FailedToInitializeBackendRepository indicates that the condition transitioned to this state because the Stash was unable to initialize a repository in the backend
+	FailedToInitializeBackendRepository = "FailedToInitializeBackendRepository"
+	// SuccessfullyAppliedRetentionPolicy indicates that the condition transitioned to this state because the retention policies was applied successfully
+	SuccessfullyAppliedRetentionPolicy = "SuccessfullyAppliedRetentionPolicy"
+	// FailedToApplyRetentionPolicy indicates that the condition transitioned to this state because the Stash was unable to apply the retention policies
+	FailedToApplyRetentionPolicy = "FailedToApplyRetentionPolicy"
+	// SuccessfullyVerifiedRepositoryIntegrity indicates that the condition transitioned to this state because the repository has passed the integrity check
+	SuccessfullyVerifiedRepositoryIntegrity = "SuccessfullyVerifiedRepositoryIntegrity"
+	// FailedToVerifyRepositoryIntegrity indicates that the condition transitioned to this state because the repository has failed the integrity check
+	FailedToVerifyRepositoryIntegrity = "FailedToVerifyRepositoryIntegrity"
+	// SuccessfullyPushedRepositoryMetrics indicates that the condition transitioned to this state because the repository metrics was successfully pushed to the pushgateway
+	SuccessfullyPushedRepositoryMetrics = "SuccessfullyPushedRepositoryMetrics"
+	// FailedToPushRepositoryMetrics indicates that the condition transitioned to this state because the Stash was unable to push the repository metrics to the pushgateway
+	FailedToPushRepositoryMetrics = "FailedToPushRepositoryMetrics"
+)
+
+// ==================== Action related constants ============
+const (
+	// Pre-backup actions
+	InitializeBackendRepository = "InitializeBackendRepository"
+
+	// Post-backup actions
+	ApplyRetentionPolicy      = "ApplyRetentionPolicy"
+	VerifyRepositoryIntegrity = "VerifyRepositoryIntegrity"
+	SendRepositoryMetrics     = "SendRepositoryMetrics"
 )

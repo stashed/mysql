@@ -593,6 +593,16 @@ func (in *BackupTargetStatus) DeepCopyInto(out *BackupTargetStatus) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.PreBackupActions != nil {
+		in, out := &in.PreBackupActions, &out.PreBackupActions
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
+	if in.PostBackupActions != nil {
+		in, out := &in.PostBackupActions, &out.PostBackupActions
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 

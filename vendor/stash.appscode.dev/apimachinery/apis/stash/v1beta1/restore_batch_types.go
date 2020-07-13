@@ -82,10 +82,10 @@ type RestoreBatchStatus struct {
 	Conditions []kmapi.Condition `json:"conditions,omitempty" protobuf:"bytes,3,rep,name=conditions"`
 	// Members shows the restore status for the members of the RestoreBatch.
 	// +optional
-	Members []RestoreMemberStatus `json:"members" protobuf:"bytes,4,rep,name=members"`
+	Members []RestoreMemberStatus `json:"members,omitempty" protobuf:"bytes,4,rep,name=members"`
 }
 
-// +kubebuilder:validation:Enum=Succeeded;Running;Failed
+// +kubebuilder:validation:Enum=Pending;Succeeded;Running;Failed
 type RestoreTargetPhase string
 
 const (

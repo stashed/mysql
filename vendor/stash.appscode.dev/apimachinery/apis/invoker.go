@@ -175,15 +175,18 @@ func ExtractBackupInvokerInfo(stashClient cs.Interface, invokerType, invokerName
 			}
 			return kmapi.IsConditionTrue(backupBatch.Status.Conditions, condType), nil
 		}
-		invoker.NextInOrder = func(ref v1beta1.TargetRef, targets []v1beta1.BackupTargetStatus) bool {
-			for i := range targets {
-				if TargetMatched(ref, targets[i].Ref) && targets[i].Phase == "" {
-					break
-				}
-				if targets[i].Phase != v1beta1.TargetBackupSucceeded {
-					return false
+		invoker.NextInOrder = func(ref v1beta1.TargetRef, targetStatus []v1beta1.BackupTargetStatus) bool {
+			for _, t := range invoker.TargetsInfo {
+				if t.Target != nil {
+					if TargetMatched(t.Target.Ref, ref) {
+						return true
+					}
+					if !TargetBackupCompleted(t.Target.Ref, targetStatus) {
+						return false
+					}
 				}
 			}
+			// By default, return true so that nil target(i.e. cluster backup) does not get stuck here.
 			return true
 		}
 	case v1beta1.ResourceKindBackupConfiguration:
@@ -268,15 +271,18 @@ func ExtractBackupInvokerInfo(stashClient cs.Interface, invokerType, invokerName
 			}
 			return kmapi.IsConditionTrue(backupConfig.Status.Conditions, condType), nil
 		}
-		invoker.NextInOrder = func(ref v1beta1.TargetRef, targets []v1beta1.BackupTargetStatus) bool {
-			for i := range targets {
-				if TargetMatched(ref, targets[i].Ref) && targets[i].Phase == "" {
-					break
-				}
-				if targets[i].Phase != v1beta1.TargetBackupSucceeded {
-					return false
+		invoker.NextInOrder = func(ref v1beta1.TargetRef, targetStatus []v1beta1.BackupTargetStatus) bool {
+			for _, t := range invoker.TargetsInfo {
+				if t.Target != nil {
+					if TargetMatched(t.Target.Ref, ref) {
+						return true
+					}
+					if !TargetBackupCompleted(t.Target.Ref, targetStatus) {
+						return false
+					}
 				}
 			}
+			// By default, return true so that nil target(i.e. cluster backup) does not get stuck here.
 			return true
 		}
 	default:
@@ -335,5 +341,26 @@ func isMemberConditionTrue(conditions []v1beta1.MemberConditions, target v1beta1
 		}
 	}
 	// Member is not present in the list, so the condition is false
+	return false
+}
+
+func TargetBackupInitiated(ref v1beta1.TargetRef, targetStatus []v1beta1.BackupTargetStatus) bool {
+	for i := range targetStatus {
+		if TargetMatched(ref, targetStatus[i].Ref) {
+			return targetStatus[i].Phase == v1beta1.TargetBackupRunning ||
+				targetStatus[i].Phase == v1beta1.TargetBackupSucceeded ||
+				targetStatus[i].Phase == v1beta1.TargetBackupFailed
+		}
+	}
+	return false
+}
+
+func TargetBackupCompleted(ref v1beta1.TargetRef, targetStatus []v1beta1.BackupTargetStatus) bool {
+	for i := range targetStatus {
+		if TargetMatched(ref, targetStatus[i].Ref) {
+			return targetStatus[i].Phase == v1beta1.TargetBackupSucceeded ||
+				targetStatus[i].Phase == v1beta1.TargetBackupFailed
+		}
+	}
 	return false
 }

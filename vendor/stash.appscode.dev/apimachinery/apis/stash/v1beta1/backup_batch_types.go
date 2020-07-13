@@ -99,7 +99,7 @@ type BackupBatchStatus struct {
 	Conditions []kmapi.Condition `json:"conditions,omitempty" protobuf:"bytes,2,rep,name=conditions"`
 	// MemberConditions shows current backup setup condition of the members of the BackupBatch.
 	// +optional
-	MemberConditions []MemberConditions `json:"memberConditions" protobuf:"bytes,3,rep,name=memberConditions"`
+	MemberConditions []MemberConditions `json:"memberConditions,omitempty" protobuf:"bytes,3,rep,name=memberConditions"`
 }
 
 type MemberConditions struct {

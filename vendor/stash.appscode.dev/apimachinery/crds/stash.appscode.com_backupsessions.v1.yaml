@@ -140,10 +140,23 @@ spec:
                     phase:
                       description: Phase indicates backup phase of this target
                       enum:
+                      - Pending
                       - Succeeded
                       - Running
                       - Failed
                       type: string
+                    postBackupActions:
+                      description: PostBackupActions specifies a list of actions that
+                        the backup process should execute after taking backup
+                      items:
+                        type: string
+                      type: array
+                    preBackupActions:
+                      description: PreBackupActions specifies a list of actions that
+                        the backup process should execute before taking backup
+                      items:
+                        type: string
+                      type: array
                     ref:
                       description: Ref refers to the backup target
                       properties:

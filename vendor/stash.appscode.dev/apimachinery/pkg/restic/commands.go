@@ -94,22 +94,24 @@ func (w *ResticWrapper) deleteSnapshots(snapshotIDs []string) ([]byte, error) {
 	return w.run(Command{Name: ResticCMD, Args: args})
 }
 
-func (w *ResticWrapper) initRepositoryIfAbsent() error {
-	log.Infoln("Ensuring restic repository in the backend")
+func (w *ResticWrapper) repositoryExist() bool {
+	log.Infoln("Checking whether the backend repository exist or not....")
 	args := w.appendCacheDirFlag([]interface{}{"snapshots", "--json"})
 	args = w.appendCaCertFlag(args)
 	args = w.appendMaxConnectionsFlag(args)
-	if _, err := w.run(Command{Name: ResticCMD, Args: args}); err != nil {
-		args = w.appendCacheDirFlag([]interface{}{"init"})
-		args = w.appendCaCertFlag(args)
-		args = w.appendMaxConnectionsFlag(args)
-
-		_, err := w.run(Command{Name: ResticCMD, Args: args})
-		if err != nil {
-			return err
-		}
+	if _, err := w.run(Command{Name: ResticCMD, Args: args}); err == nil {
+		return true
 	}
-	return nil
+	return false
+}
+
+func (w *ResticWrapper) initRepository() error {
+	log.Infoln("Initializing new restic repository in the backend....")
+	args := w.appendCacheDirFlag([]interface{}{"init"})
+	args = w.appendCaCertFlag(args)
+	args = w.appendMaxConnectionsFlag(args)
+	_, err := w.run(Command{Name: ResticCMD, Args: args})
+	return err
 }
 
 func (w *ResticWrapper) backup(params backupParams) ([]byte, error) {

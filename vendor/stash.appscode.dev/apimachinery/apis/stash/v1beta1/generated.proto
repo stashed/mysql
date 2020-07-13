@@ -387,6 +387,14 @@ message BackupTargetStatus {
   // Stats shows statistics of individual hosts for this backup session
   // +optional
   repeated HostBackupStats stats = 4;
+
+  // PreBackupActions specifies a list of actions that the backup process should execute before taking backup
+  // +optional
+  repeated string preBackupActions = 5;
+
+  // PostBackupActions specifies a list of actions that the backup process should execute after taking backup
+  // +optional
+  repeated string postBackupActions = 6;
 }
 
 message EmptyDirSettings {
@@ -866,6 +874,7 @@ message TaskList {
 message TaskRef {
   optional string name = 1;
 
+  // Params specifies a list of parameter to pass to the Task. Stash will use this parameters to resolve the task.
   // +optional
   repeated Param params = 2;
 }

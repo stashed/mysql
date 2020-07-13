@@ -22,7 +22,9 @@ import (
 	"strings"
 
 	api_v1beta1 "stash.appscode.dev/apimachinery/apis/stash/v1beta1"
+	stash "stash.appscode.dev/apimachinery/client/clientset/versioned"
 	"stash.appscode.dev/apimachinery/pkg/restic"
+	api_util "stash.appscode.dev/apimachinery/pkg/util"
 
 	"github.com/appscode/go/flags"
 	"github.com/spf13/cobra"
@@ -69,6 +71,10 @@ func NewCmdBackup() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			opt.stashClient, err = stash.NewForConfig(config)
+			if err != nil {
+				return err
+			}
 			opt.catalogClient, err = appcatalog_cs.NewForConfig(config)
 			if err != nil {
 				return err
@@ -110,6 +116,7 @@ func NewCmdBackup() *cobra.Command {
 	cmd.Flags().StringVar(&masterURL, "master", masterURL, "The address of the Kubernetes API server (overrides any value in kubeconfig)")
 	cmd.Flags().StringVar(&kubeconfigPath, "kubeconfig", kubeconfigPath, "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
 	cmd.Flags().StringVar(&opt.namespace, "namespace", "default", "Namespace of Backup/Restore Session")
+	cmd.Flags().StringVar(&opt.backupSessionName, "backupsession", opt.backupSessionName, "Name of the Backup Session")
 	cmd.Flags().StringVar(&opt.appBindingName, "appbinding", opt.appBindingName, "Name of the app binding")
 
 	cmd.Flags().StringVar(&opt.setupOptions.Provider, "provider", opt.setupOptions.Provider, "Backend provider (i.e. gcs, s3, azure etc)")
@@ -140,8 +147,24 @@ func NewCmdBackup() *cobra.Command {
 }
 
 func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.BackupOutput, error) {
+	// if any pre-backup actions has been assigned to it, execute them
+	actionOptions := api_util.ActionOptions{
+		StashClient:       opt.stashClient,
+		TargetRef:         targetRef,
+		SetupOptions:      opt.setupOptions,
+		BackupSessionName: opt.backupSessionName,
+		Namespace:         opt.namespace,
+	}
+	err := api_util.ExecutePreBackupActions(actionOptions)
+	if err != nil {
+		return nil, err
+	}
+	// wait until the backend repository has been initialized.
+	err = api_util.WaitForBackendRepository(actionOptions)
+	if err != nil {
+		return nil, err
+	}
 	// apply nice, ionice settings from env
-	var err error
 	opt.setupOptions.Nice, err = v1.NiceSettingsFromEnv()
 	if err != nil {
 		return nil, err

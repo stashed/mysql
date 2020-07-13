@@ -186,15 +186,18 @@ func ExtractRestoreInvokerInfo(kubeClient kubernetes.Interface, stashClient cs.I
 			return kmapi.IsConditionTrue(restoreBatch.Status.Conditions, condType), nil
 		}
 
-		invoker.NextInOrder = func(ref v1beta1.TargetRef, targets []v1beta1.RestoreMemberStatus) bool {
-			for i := range targets {
-				if TargetMatched(ref, targets[i].Ref) && targets[i].Phase == "" {
-					break
-				}
-				if targets[i].Phase != v1beta1.TargetRestoreSucceeded {
-					return false
+		invoker.NextInOrder = func(ref v1beta1.TargetRef, targetStatus []v1beta1.RestoreMemberStatus) bool {
+			for _, t := range invoker.TargetsInfo {
+				if t.Target != nil {
+					if TargetMatched(t.Target.Ref, ref) {
+						return true
+					}
+					if !TargetRestoreCompleted(t.Target.Ref, targetStatus) {
+						return false
+					}
 				}
 			}
+			// By default, return true so that nil target(i.e. cluster backup) does not get stuck here.
 			return true
 		}
 
@@ -210,10 +213,10 @@ func ExtractRestoreInvokerInfo(kubeClient kubernetes.Interface, stashClient cs.I
 					if status.SessionDuration != "" {
 						in.SessionDuration = status.SessionDuration
 					}
-					if status.Conditions != nil {
+					if len(status.Conditions) > 0 {
 						in.Conditions = upsertConditions(in.Conditions, status.Conditions)
 					}
-					if status.TargetStatus != nil {
+					if len(status.TargetStatus) > 0 {
 						for i := range status.TargetStatus {
 							in.Members = upsertRestoreMemberStatus(in.Members, status.TargetStatus[i])
 						}
@@ -330,15 +333,18 @@ func ExtractRestoreInvokerInfo(kubeClient kubernetes.Interface, stashClient cs.I
 			return kmapi.IsConditionTrue(restoreSession.Status.Conditions, condType), nil
 		}
 
-		invoker.NextInOrder = func(ref v1beta1.TargetRef, targets []v1beta1.RestoreMemberStatus) bool {
-			for i := range targets {
-				if TargetMatched(ref, targets[i].Ref) && targets[i].Phase == "" {
-					break
-				}
-				if targets[i].Phase != v1beta1.TargetRestoreSucceeded {
-					return false
+		invoker.NextInOrder = func(ref v1beta1.TargetRef, targetStatus []v1beta1.RestoreMemberStatus) bool {
+			for _, t := range invoker.TargetsInfo {
+				if t.Target != nil {
+					if TargetMatched(t.Target.Ref, ref) {
+						return true
+					}
+					if !TargetRestoreCompleted(t.Target.Ref, targetStatus) {
+						return false
+					}
 				}
 			}
+			// By default, return true so that nil target(i.e. cluster backup) does not get stuck here.
 			return true
 		}
 
@@ -366,7 +372,7 @@ func ExtractRestoreInvokerInfo(kubeClient kubernetes.Interface, stashClient cs.I
 							in.Conditions = upsertConditions(in.Conditions, targetStatus.Conditions)
 						}
 						if targetStatus.Stats != nil {
-							in.Stats = targetStatus.Stats
+							in.Stats = upsertRestoreHostStatus(in.Stats, targetStatus.Stats)
 						}
 						if targetStatus.Phase != "" {
 							in.Phase = v1beta1.RestorePhase(targetStatus.Phase)
@@ -443,7 +449,7 @@ func setRestoreMemberCondition(status []v1beta1.RestoreMemberStatus, target v1be
 		Ref:        target,
 		Conditions: kmapi.SetCondition(nil, newCondition),
 	}
-	return append(status, memberStatus)
+	return upsertRestoreMemberStatus(status, memberStatus)
 }
 
 func isRestoreMemberConditionTrue(status []v1beta1.RestoreMemberStatus, target v1beta1.TargetRef, condType string) bool {
@@ -461,12 +467,19 @@ func upsertRestoreMemberStatus(cur []v1beta1.RestoreMemberStatus, new v1beta1.Re
 	// if the member status already exist, then update it
 	for i := range cur {
 		if TargetMatched(cur[i].Ref, new.Ref) {
-			cur[i].Ref = new.Ref
-			cur[i].Conditions = upsertConditions(cur[i].Conditions, new.Conditions)
+			if new.Phase != "" {
+				cur[i].Phase = new.Phase
+			}
+			if len(new.Conditions) > 0 {
+				cur[i].Conditions = upsertConditions(cur[i].Conditions, new.Conditions)
+			}
 			if new.TotalHosts != nil {
 				cur[i].TotalHosts = new.TotalHosts
 			}
-			cur[i].Stats = upsertRestoreHostStatus(cur[i].Stats, new.Stats)
+			if len(new.Stats) > 0 {
+				cur[i].Stats = upsertRestoreHostStatus(cur[i].Stats, new.Stats)
+			}
+			return cur
 		}
 	}
 	// the member status does not exist. so, add new entry.
@@ -527,4 +540,15 @@ func getInvokerStatusFromRestoreSession(restoreSession *v1beta1.RestoreSession) 
 		})
 	}
 	return invokerStatus
+}
+
+func TargetRestoreCompleted(ref v1beta1.TargetRef, targetStatus []v1beta1.RestoreMemberStatus) bool {
+	for i := range targetStatus {
+		if TargetMatched(ref, targetStatus[i].Ref) {
+			return targetStatus[i].Phase == v1beta1.TargetRestoreSucceeded ||
+				targetStatus[i].Phase == v1beta1.TargetRestoreFailed ||
+				targetStatus[i].Phase == v1beta1.TargetRestorePhaseUnknown
+		}
+	}
+	return false
 }

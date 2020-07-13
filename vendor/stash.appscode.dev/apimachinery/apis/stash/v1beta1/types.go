@@ -40,6 +40,7 @@ type Param struct {
 
 type TaskRef struct {
 	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
+	// Params specifies a list of parameter to pass to the Task. Stash will use this parameters to resolve the task.
 	// +optional
 	Params []Param `json:"params,omitempty" protobuf:"bytes,2,rep,name=params"`
 }

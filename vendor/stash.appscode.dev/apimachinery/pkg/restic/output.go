@@ -34,8 +34,6 @@ const FileModeRWXAll = 0777
 type BackupOutput struct {
 	// BackupTargetStatus shows the status of a backup target
 	BackupTargetStatus api_v1beta1.BackupTargetStatus `json:"targetStatus,omitempty"`
-	// RepositoryStats shows statistics of repository after last backup
-	RepositoryStats RepositoryStats `json:"repository,omitempty"`
 }
 
 type RepositoryStats struct {

@@ -70,7 +70,7 @@ const (
 	HostBackupFailed    HostBackupPhase = "Failed"
 )
 
-// +kubebuilder:validation:Enum=Succeeded;Running;Failed
+// +kubebuilder:validation:Enum=Pending;Succeeded;Running;Failed
 type TargetPhase string
 
 const (
@@ -109,6 +109,12 @@ type BackupTargetStatus struct {
 	// Stats shows statistics of individual hosts for this backup session
 	// +optional
 	Stats []HostBackupStats `json:"stats,omitempty" protobuf:"bytes,4,rep,name=stats"`
+	// PreBackupActions specifies a list of actions that the backup process should execute before taking backup
+	// +optional
+	PreBackupActions []string `json:"preBackupActions,omitempty" protobuf:"bytes,5,rep,name=preBackupActions"`
+	// PostBackupActions specifies a list of actions that the backup process should execute after taking backup
+	// +optional
+	PostBackupActions []string `json:"postBackupActions,omitempty" protobuf:"bytes,6,rep,name=postBackupActions"`
 }
 
 type HostBackupStats struct {

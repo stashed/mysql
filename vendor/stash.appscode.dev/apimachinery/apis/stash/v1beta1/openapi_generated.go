@@ -18485,6 +18485,34 @@ func schema_apimachinery_apis_stash_v1beta1_BackupTargetStatus(ref common.Refere
 							},
 						},
 					},
+					"preBackupActions": {
+						SchemaProps: spec.SchemaProps{
+							Description: "PreBackupActions specifies a list of actions that the backup process should execute before taking backup",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"postBackupActions": {
+						SchemaProps: spec.SchemaProps{
+							Description: "PostBackupActions specifies a list of actions that the backup process should execute after taking backup",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -19865,7 +19893,8 @@ func schema_apimachinery_apis_stash_v1beta1_TaskRef(ref common.ReferenceCallback
 					},
 					"params": {
 						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
+							Description: "Params specifies a list of parameter to pass to the Task. Stash will use this parameters to resolve the task.",
+							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{

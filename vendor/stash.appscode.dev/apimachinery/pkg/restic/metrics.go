@@ -459,7 +459,7 @@ func (metricOpt *MetricsOptions) SendBackupSessionMetrics(invoker apis.Invoker, 
 	registry := prometheus.NewRegistry()
 
 	// generate metrics labels
-	labels, err := backupSessionLabels(invoker, metricOpt.Labels)
+	labels, err := backupInvokerLabels(invoker, metricOpt.Labels)
 	if err != nil {
 		return err
 	}
@@ -506,7 +506,7 @@ func (metricOpt *MetricsOptions) SendBackupTargetMetrics(config *rest.Config, in
 	registry := prometheus.NewRegistry()
 
 	// generate backup session related labels
-	labels, err := backupSessionLabels(invoker, metricOpt.Labels)
+	labels, err := backupInvokerLabels(invoker, metricOpt.Labels)
 	if err != nil {
 		return err
 	}
@@ -564,7 +564,7 @@ func (metricOpt *MetricsOptions) SendBackupHostMetrics(config *rest.Config, invo
 	registry := prometheus.NewRegistry()
 
 	// generate backup session related labels
-	labels, err := backupSessionLabels(invoker, metricOpt.Labels)
+	labels, err := backupInvokerLabels(invoker, metricOpt.Labels)
 	if err != nil {
 		return err
 	}
@@ -612,30 +612,39 @@ func (metricOpt *MetricsOptions) SendBackupHostMetrics(config *rest.Config, invo
 			)
 		}
 	}
+	return metricOpt.sendMetrics(registry, metricOpt.JobName)
+}
 
-	// TODO: Run Repo check from the operator when the backup has been completed and send metrics from there.
-	// create repository metrics
-	if backupOutput.RepositoryStats.Integrity != nil {
-		repoMetricLabels, err := repoMetricLabels(config, invoker, metricOpt.Labels)
-		if err != nil {
-			return err
-		}
+// SendRepositoryMetrics send backup session related metrics to the Pushgateway
+func (metricOpt *MetricsOptions) SendRepositoryMetrics(config *rest.Config, invoker apis.Invoker, repoStats RepositoryStats) error {
+	// create metric registry
+	registry := prometheus.NewRegistry()
 
-		repoMetrics := newRepositoryMetrics(repoMetricLabels)
-		err = repoMetrics.setValues(backupOutput.RepositoryStats)
-		if err != nil {
-			return err
-		}
-
-		// register repository metrics
-		registry.MustRegister(
-			repoMetrics.RepoIntegrity,
-			repoMetrics.RepoSize,
-			repoMetrics.SnapshotCount,
-			repoMetrics.SnapshotsRemovedOnLastCleanup,
-		)
+	// generate backup invoker labels
+	labels, err := backupInvokerLabels(invoker, metricOpt.Labels)
+	if err != nil {
+		return err
 	}
 
+	repoMetricLabels, err := repoMetricLabels(config, invoker, metricOpt.Labels)
+	if err != nil {
+		return err
+	}
+
+	// create repository metrics
+	repoMetrics := newRepositoryMetrics(upsertLabel(labels, repoMetricLabels))
+	err = repoMetrics.setValues(repoStats)
+	if err != nil {
+		return err
+	}
+	// register repository metrics
+	registry.MustRegister(
+		repoMetrics.RepoIntegrity,
+		repoMetrics.RepoSize,
+		repoMetrics.SnapshotCount,
+		repoMetrics.SnapshotsRemovedOnLastCleanup,
+	)
+	// send metrics to the pushgateway
 	return metricOpt.sendMetrics(registry, metricOpt.JobName)
 }
 
@@ -645,7 +654,7 @@ func (metricOpt *MetricsOptions) SendRestoreSessionMetrics(invoker apis.RestoreI
 	registry := prometheus.NewRegistry()
 
 	// generate metrics labels
-	labels, err := restoreSessionLabels(invoker, metricOpt.Labels)
+	labels, err := restoreInvokerLabels(invoker, metricOpt.Labels)
 	if err != nil {
 		return err
 	}
@@ -688,7 +697,7 @@ func (metricOpt *MetricsOptions) SendRestoreTargetMetrics(config *rest.Config, i
 	registry := prometheus.NewRegistry()
 
 	// generate metrics labels
-	labels, err := restoreSessionLabels(invoker, metricOpt.Labels)
+	labels, err := restoreInvokerLabels(invoker, metricOpt.Labels)
 	if err != nil {
 		return err
 	}
@@ -742,7 +751,7 @@ func (metricOpt *MetricsOptions) SendRestoreHostMetrics(config *rest.Config, inv
 	registry := prometheus.NewRegistry()
 
 	// generate restore session related labels
-	labels, err := restoreSessionLabels(invoker, metricOpt.Labels)
+	labels, err := restoreInvokerLabels(invoker, metricOpt.Labels)
 	if err != nil {
 		return err
 	}
@@ -880,7 +889,7 @@ func (metricOpt *MetricsOptions) sendMetrics(registry *prometheus.Registry, jobN
 }
 
 // nolint:unparam
-func backupSessionLabels(invoker apis.Invoker, userProvidedLabels []string) (prometheus.Labels, error) {
+func backupInvokerLabels(invoker apis.Invoker, userProvidedLabels []string) (prometheus.Labels, error) {
 	// add user provided labels
 	promLabels := parseUserProvidedLabels(userProvidedLabels)
 
@@ -901,7 +910,7 @@ func backupSessionLabels(invoker apis.Invoker, userProvidedLabels []string) (pro
 }
 
 // nolint:unparam
-func restoreSessionLabels(invoker apis.RestoreInvoker, userProvidedLabels []string) (prometheus.Labels, error) {
+func restoreInvokerLabels(invoker apis.RestoreInvoker, userProvidedLabels []string) (prometheus.Labels, error) {
 	// add user provided labels
 	promLabels := parseUserProvidedLabels(userProvidedLabels)
 

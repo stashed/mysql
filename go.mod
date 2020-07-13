@@ -16,12 +16,14 @@ require (
 	k8s.io/apimachinery v0.18.3
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kube-openapi v0.0.0-20200410145947-61e04a5be9a6
+	k8s.io/kubernetes v1.18.3
 	kmodules.xyz/client-go v0.0.0-20200630053911-20d035822d35
 	kmodules.xyz/crd-schema-fuzz v0.0.0-20200521005638-2433a187de95
 	kmodules.xyz/custom-resources v0.0.0-20200604135349-9e9f5c4fdba9
 	kmodules.xyz/offshoot-api v0.0.0-20200521035628-e135bf07b226
+	kmodules.xyz/prober v0.0.0-20200521101241-adf06150535c
 	sigs.k8s.io/yaml v1.2.0
-	stash.appscode.dev/apimachinery v0.10.0-alpha.1.0.20200629145105-b8c42c18d61f
+	stash.appscode.dev/apimachinery v0.10.0-alpha.1.0.20200713191929-28b896b1bac2
 )
 
 replace (
