@@ -1,10 +1,10 @@
 apiVersion: v1
 description: 'stash-mysql - MySQL database plugin for Stash by AppsCode'
 name: stash-mysql
-version: 8.0.3-beta.20200709
-appVersion: 8.0.3-beta.20200709
-home: https://github.com/stashed/mysql
-icon: https://cdn.appscode.com/images/icon/stash.png
+version: v2020.07.09-beta.0
+appVersion: v2020.07.09-beta.0
+home: https://stash.run
+icon: https://cdn.appscode.com/images/products/stash/addons/mysql-stash-addon.png
 sources:
 - https://github.com/stashed/mysql
 maintainers:
