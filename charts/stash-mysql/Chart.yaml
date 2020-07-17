@@ -4,7 +4,7 @@ name: stash-mysql
 version: 8.0.14-beta.20200709
 appVersion: 8.0.14-beta.20200709
 home: https://stash.run
-icon: https://cdn.appscode.com/images/icon/stash.png
+icon: https://cdn.appscode.com/images/products/stash/addons/mysql-stash-addon.png
 sources:
 - https://github.com/stashed/mysql
 maintainers:
