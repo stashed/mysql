@@ -297,7 +297,6 @@ chart-%:
 chart-contents-%:
 	@yq w -i ./charts/$*/doc.yaml repository.name --tag '!!str' $(CHART_REGISTRY)
 	@yq w -i ./charts/$*/doc.yaml repository.url --tag '!!str' $(CHART_REGISTRY_URL)
-	@yq w -i ./charts/$*/values.yaml image.tag --tag '!!str' $(TAG);
 	@if [ ! -z "$(CHART_VERSION)" ]; then                                                  \
 		yq w -i ./charts/$*/Chart.yaml version --tag '!!str' $(CHART_VERSION);             \
 		yq w -i ./charts/$*/doc.yaml chart.version --tag '!!str' $(CHART_VERSION);         \
@@ -305,6 +304,7 @@ chart-contents-%:
 	fi
 	@if [ ! -z "$(APP_VERSION)" ]; then                                                    \
 		yq w -i ./charts/$*/Chart.yaml appVersion --tag '!!str' $(APP_VERSION);            \
+		@yq w -i ./charts/$*/values.yaml image.tag --tag '!!str' $(APP_VERSION);           \
 	fi
 
 fmt: $(BUILD_DIRS)
