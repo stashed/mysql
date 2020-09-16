@@ -4,7 +4,7 @@ metadata:
   name: restored-mysql
   namespace: demo
 spec:
-  version: "8.0.14"
+  version: "8.0.14-v1"
   databaseSecret:
     secretName: sample-mysql-auth
   replicas: 1
@@ -16,6 +16,8 @@ spec:
       requests:
         storage: 50Mi
   init:
-    stashRestoreSession:
+    initializer:
+      apiGroup: stash.appscode.com
+      kind: RestoreSession
       name: restore-sample-mysql
   terminationPolicy: WipeOut
