@@ -37,7 +37,7 @@ spec:
   - --retention-dry-run=${RETENTION_DRY_RUN:=false}
   # output & metric information
   - --output-dir=${outputDir:=}
-  - --apiservice=${API_SERVICE_NAME:=}
+  - --license-apiservice=${LICENSE_APISERVICE:=}
   volumeMounts:
   - name: ${secretVolume}
     mountPath: /etc/repository/secret
