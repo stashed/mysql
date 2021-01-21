@@ -50,7 +50,7 @@ The following table lists the configurable parameters of the `stash-mysql` chart
 | fullnameOverride | Overrides fullname template                                                                                                 | `""`                |
 | image.registry   | Docker registry used to pull MySQL addon image                                                                              | `stashed`           |
 | image.repository | Docker image used to backup/restore MySQL database                                                                          | `stash-mysql`       |
-| image.tag        | Tag of the image that is used to backup/restore MySQL database. This is usually same as the database version it can backup. | `v2020.12.17`       |
+| image.tag        | Tag of the image that is used to backup/restore MySQL database. This is usually same as the database version it can backup. | `8.0.21`            |
 | backup.args      | Arguments to pass to `mysqldump` command  during bakcup process                                                             | `"--all-databases"` |
 | restore.args     | Arguments to pass to `mysql` command during restore process                                                                 | `""`                |
 | waitTimeout      | Number of seconds to wait for the database to be ready before backup/restore process.                                       | `300`               |
