@@ -39,7 +39,6 @@ $ helm delete stash-mysql-5.7.25-v6 -n kube-system
 ```
 
 The command removes all the Kubernetes components associated with the chart and deletes the release.
-
 ## Configuration
 
 The following table lists the configurable parameters of the `stash-mysql` chart and their default values.
