@@ -191,7 +191,7 @@ func (opt *mysqlOptions) restoreMySQL(targetRef api_v1beta1.TargetRef) (*restic.
 	}
 
 	// wait for DB ready
-	err = waitForDBReady(appBinding, appBindingSecret, opt.waitTimeout)
+	err = opt.waitForDBReady(appBinding, appBindingSecret)
 	if err != nil {
 		return nil, err
 	}
