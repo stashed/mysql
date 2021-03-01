@@ -445,7 +445,7 @@ metadata:
   name: restored-mysql
   namespace: demo
 spec:
-  version: "8.0.14"
+  version: "8.0.3-v2"
   authSecret:
     name: sample-mysql-auth
   replicas: 1
