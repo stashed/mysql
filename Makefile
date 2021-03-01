@@ -64,8 +64,8 @@ BIN_PLATFORMS    := $(DOCKER_PLATFORMS)
 OS   := $(if $(GOOS),$(GOOS),$(shell go env GOOS))
 ARCH := $(if $(GOARCH),$(GOARCH),$(shell go env GOARCH))
 
-BASEIMAGE_PROD   ?= mysql:8.0.21
-BASEIMAGE_DBG    ?= mysql:8.0.21
+BASEIMAGE_PROD   ?= mysql:5.7.25
+BASEIMAGE_DBG    ?= mysql:5.7.25
 
 IMAGE            := $(REGISTRY)/$(BIN)
 VERSION_PROD     := $(VERSION)
