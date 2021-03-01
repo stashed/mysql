@@ -201,7 +201,7 @@ func (opt *mysqlOptions) restoreMySQL(targetRef api_v1beta1.TargetRef) (*restic.
 			fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MySQLTLSRootCA)),
 		}
 
-		opt.dumpOptions.StdoutPipeCommand.Args = append(opt.dumpOptions.StdoutPipeCommand.Args, tlsCreds...)
+		restoreCmd.Args = append(restoreCmd.Args, tlsCreds...)
 	}
 
 	// wait for DB ready
