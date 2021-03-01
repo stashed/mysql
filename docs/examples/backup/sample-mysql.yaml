@@ -1,10 +1,10 @@
-apiVersion: kubedb.com/v1alpha1
+apiVersion: kubedb.com/v1alpha2
 kind: MySQL
 metadata:
   name: sample-mysql
   namespace: demo
 spec:
-  version: "8.0.3"
+  version: "8.0.3-v2"
   replicas: 1
   storageType: Durable
   storage:
