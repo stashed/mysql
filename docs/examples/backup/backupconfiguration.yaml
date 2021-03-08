@@ -6,7 +6,7 @@ metadata:
 spec:
   schedule: "*/5 * * * *"
   task:
-    name: mysql-backup-8.0.3-v6
+    name: mysql-backup-8.0.3-v7
   repository:
     name: gcs-repo
   target:
