@@ -143,6 +143,15 @@ spec:
     url: tcp(sample-mysql:3306)/
   secret:
     name: sample-mysql-auth
+  parameters:
+    apiVersion: appcatalog.appscode.com/v1alpha1
+    kind: StashAddon
+    stash:
+      addon:
+        backupTask:
+          name: mysql-backup-{{< param "info.subproject_version" >}}
+        restoreTask:
+          name: mysql-restore-{{< param "info.subproject_version" >}}
   type: kubedb.com/mysql
   version: "8.0.21"
 ```
@@ -151,6 +160,7 @@ Stash uses the AppBinding CRD to connect with the target database. It requires t
 
 - `.spec.clientConfig.service.name` specifies the name of the Service that connects to the database.
 - `.spec.secret` specifies the name of the Secret that holds necessary credentials to access the database.
+- `spec.parameters.stash` specifies the Stash Addon info that will be used to backup and restore this database.
 - `spec.type` specifies the types of the app that this AppBinding is pointing to. KubeDB generated AppBinding follows the following format: `<app group>/<app resource type>`.
 
 **Creating AppBinding Manually:**
@@ -323,8 +333,8 @@ metadata:
   namespace: demo
 spec:
   schedule: "*/5 * * * *"
-  task:
-    name: mysql-backup-{{< param "info.subproject_version" >}}
+  # task: # Uncomment if you are not using KubeDB.
+  #   name: mysql-backup-{{< param "info.subproject_version" >}}
   repository:
     name: gcs-repo
   target:
@@ -430,8 +440,7 @@ Notice the `PAUSED` column. Value `true` for this field means that the BackupCon
 
 Now, we have to deploy the restored database similarly as we have deployed the original `sample-mysql` database. However, this time there will be the following differences:
 
-- We have to use the same secret that was used in the original database. We are going to specify it using `.spec.databaseSecret` field.
-- We have to specify `.spec.init` section to tell KubeDB that we are going to use Stash to initialize this database from backup. KubeDB will keep the database phase to **`Initializing`** until Stash finishes its initialization.
+- We are going to specify `.spec.init.waitForInitialRestore` field that tells KubeDB to wait for first restore to complete before marking this database is ready to use.
 
 Below is the YAML for `MySQL` CRD we are going deploy to initialize from backup,
 
@@ -443,8 +452,6 @@ metadata:
   namespace: demo
 spec:
   version: "8.0.21-v1"
-  authSecret:
-    name: sample-mysql-auth
   replicas: 1
   storageType: Durable
   storage:
@@ -458,10 +465,6 @@ spec:
   terminationPolicy: WipeOut
 ```
 
-Here,
-
-- `spec.init.waitForInitialRestore` tells KubeDB to wait for the first restore to complete before marking this database as ready to use.
-
 Let's create the above database,
 
 ```bash
@@ -469,12 +472,12 @@ $ kubectl apply -f https://github.com/stashed/mysql/raw/{{< param "info.subproje
 mysql.kubedb.com/restored-mysql created
 ```
 
-If you check the database status, you will see it is stuck in **`Initializing`** state.
+If you check the database status, you will see it is stuck in **`Provisioning`** state.
 
 ```bash
 $ kubectl get my -n demo restored-mysql
 NAME             VERSION   STATUS         AGE
-restored-mysql   8.0.14    Initializing   61s
+restored-mysql   8.0.14    Provisioning   61s
 ```
 
 **Create RestoreSession:**
@@ -499,11 +502,9 @@ kind: RestoreSession
 metadata:
   name: sample-mysql-restore
   namespace: demo
-  labels:
-    app.kubernetes.io/name: mysqls.kubedb.com # this label is mandatory if you are using KubeDB to deploy the database.
 spec:
-  task:
-    name: mysql-restore-{{< param "info.subproject_version" >}}
+  # task: # Uncomment if you are not using KubeDB.
+  #   name: mysql-restore-{{< param "info.subproject_version" >}}
   repository:
     name: gcs-repo
   target:
@@ -517,13 +518,10 @@ spec:
 
 Here,
 
-- `.metadata.labels` specifies a `app.kubernetes.io/name: mysqls.kubedb.com` label that is used by KubeDB to watch this RestoreSession object.
 - `.spec.task.name` specifies the name of the Task CRD that specifies the necessary Functions and their execution order to restore a MySQL database.
 - `.spec.repository.name` specifies the Repository CRD that holds the backend information where our backed up data has been stored.
 - `.spec.target.ref` refers to the newly created AppBinding object for the `restored-mysql` MySQL object.
 - `.spec.rules` specifies that we are restoring data from the latest backup snapshot of the database.
-
-> **Warning:** Label `app.kubernetes.io/name: mysqls.kubedb.com` is mandatory if you are using KubeDB to deploy the database. Otherwise, the database will be stuck in **`Provisioning`** state.
 
 Let's create the RestoreSession CRD object we have shown above,
 
