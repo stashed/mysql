@@ -543,11 +543,11 @@ kmodules.xyz/custom-resources/client/clientset/versioned/scheme
 kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1
 kmodules.xyz/custom-resources/client/clientset/versioned/typed/metrics/v1alpha1
 kmodules.xyz/custom-resources/crds
-# kmodules.xyz/objectstore-api v0.0.0-20210427073544-4d4b3fd133fe
+# kmodules.xyz/objectstore-api v0.0.0-20210502215550-f5d0292dff17
 kmodules.xyz/objectstore-api/api/v1
 # kmodules.xyz/offshoot-api v0.0.0-20210427074508-992086875c1e
 kmodules.xyz/offshoot-api/api/v1
-# kmodules.xyz/prober v0.0.0-20210427091238-7208ea3e0584
+# kmodules.xyz/prober v0.0.0-20210502215750-20bdd29d9c85
 kmodules.xyz/prober/api/v1
 # sigs.k8s.io/structured-merge-diff/v4 v4.1.0
 sigs.k8s.io/structured-merge-diff/v4/fieldpath
