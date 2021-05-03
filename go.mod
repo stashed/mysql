@@ -14,9 +14,10 @@ require (
 	k8s.io/apimachinery v0.21.0
 	k8s.io/client-go v0.21.0
 	k8s.io/kubernetes v1.21.0 // indirect
-	kmodules.xyz/client-go v0.0.0-20210502215034-b73197efff3f
-	kmodules.xyz/custom-resources v0.0.0-20210502220303-115fa584b8d1
-	kmodules.xyz/offshoot-api v0.0.0-20210502215616-234104e66819
+	k8s.io/utils v0.0.0-20210111153108-fddb29f9d009 // indirect
+	kmodules.xyz/client-go v0.0.0-20210503064222-c8c59295a3a5
+	kmodules.xyz/custom-resources v0.0.0-20210503065135-5267be335cb4
+	kmodules.xyz/offshoot-api v0.0.0-20210503065102-3250bbdedc8f
 	stash.appscode.dev/apimachinery v0.12.3
 )
 
