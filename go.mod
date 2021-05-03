@@ -10,12 +10,14 @@ require (
 	github.com/spf13/cobra v1.1.1
 	go.bytebuilders.dev/license-verifier/kubernetes v0.8.1
 	gomodules.xyz/x v0.0.0-20201105065653-91c568df6331
-	k8s.io/api v0.18.9
-	k8s.io/apimachinery v0.18.9
-	k8s.io/client-go v0.18.9
-	kmodules.xyz/client-go v0.0.0-20210218100652-8f345ddfe801
-	kmodules.xyz/custom-resources v0.0.0-20210222100152-7426e3678989
-	kmodules.xyz/offshoot-api v0.0.0-20210218144050-e1d794cb382a
+	k8s.io/api v0.21.0
+	k8s.io/apimachinery v0.21.0
+	k8s.io/client-go v0.21.0
+	k8s.io/kubernetes v1.21.0 // indirect
+	k8s.io/utils v0.0.0-20210111153108-fddb29f9d009 // indirect
+	kmodules.xyz/client-go v0.0.0-20210503064222-c8c59295a3a5
+	kmodules.xyz/custom-resources v0.0.0-20210503065135-5267be335cb4
+	kmodules.xyz/offshoot-api v0.0.0-20210503065102-3250bbdedc8f
 	stash.appscode.dev/apimachinery v0.12.3
 )
 
