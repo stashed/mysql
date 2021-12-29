@@ -29,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
+	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
 	appcatalog_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
 )
@@ -53,6 +54,7 @@ type mysqlOptions struct {
 	myArgs            string
 	waitTimeout       int32
 	outputDir         string
+	storageSecret     kmapi.ObjectReference
 
 	setupOptions  restic.SetupOptions
 	backupOptions restic.BackupOptions
@@ -63,14 +65,22 @@ func (opt *mysqlOptions) waitForDBReady(appBinding *v1alpha1.AppBinding, secret 
 	klog.Infoln("Waiting for the database to be ready.....")
 	shell := sh.NewSession()
 	shell.SetEnv(EnvMySqlPassword, string(secret.Data[MySqlPassword]))
+
+	hostname, err := appBinding.Hostname()
+	if err != nil {
+		return err
+	}
+	port, err := appBinding.Port()
+	if err != nil {
+		return err
+	}
 	args := []interface{}{
-		"--host", appBinding.Spec.ClientConfig.Service.Name,
+		"--host", hostname,
 		"-u", string(secret.Data[MySqlUser]),
 	}
 	if appBinding.Spec.ClientConfig.Service.Port != 0 {
-		args = append(args, fmt.Sprintf("--port=%d", appBinding.Spec.ClientConfig.Service.Port))
+		args = append(args, fmt.Sprintf("--port=%d", port))
 	}
-
 	if appBinding.Spec.ClientConfig.CABundle != nil {
 		args = append(args, fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MySQLTLSRootCA)))
 	}

@@ -17030,14 +17030,14 @@ func schema_custom_resources_apis_appcatalog_v1alpha1_AddKeysFromTransform(ref c
 					"secretRef": {
 						SchemaProps: spec.SchemaProps{
 							Description: "The reference to the Secret that should be merged into the credentials Secret.",
-							Ref:         ref("kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.ObjectReference"),
+							Ref:         ref("k8s.io/api/core/v1.LocalObjectReference"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.ObjectReference"},
+			"k8s.io/api/core/v1.LocalObjectReference"},
 	}
 }
 
@@ -17429,6 +17429,13 @@ func schema_custom_resources_apis_appcatalog_v1alpha1_ServiceReference(ref commo
 						SchemaProps: spec.SchemaProps{
 							Description: "Specifies which scheme to use, for example: http, https If specified, then it will applied as prefix in this format: scheme:// If not specified, then nothing will be prefixed",
 							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"namespace": {
+						SchemaProps: spec.SchemaProps{
+							Description: "`namespace` is the namespace of the service.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -19201,7 +19208,7 @@ func schema_apimachinery_apis_stash_v1beta1_BackupBatchSpec(ref common.Reference
 						SchemaProps: spec.SchemaProps{
 							Description: "Repository refer to the Repository crd that holds backend information",
 							Default:     map[string]interface{}{},
-							Ref:         ref("k8s.io/api/core/v1.LocalObjectReference"),
+							Ref:         ref("kmodules.xyz/client-go/api/v1.ObjectReference"),
 						},
 					},
 					"retentionPolicy": {
@@ -19243,7 +19250,7 @@ func schema_apimachinery_apis_stash_v1beta1_BackupBatchSpec(ref common.Reference
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.LocalObjectReference", "kmodules.xyz/offshoot-api/api/v1.RuntimeSettings", "stash.appscode.dev/apimachinery/apis/stash/v1alpha1.RetentionPolicy", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.BackupConfigurationTemplateSpec", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.BackupHooks"},
+			"kmodules.xyz/client-go/api/v1.ObjectReference", "kmodules.xyz/offshoot-api/api/v1.RuntimeSettings", "stash.appscode.dev/apimachinery/apis/stash/v1alpha1.RetentionPolicy", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.BackupConfigurationTemplateSpec", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.BackupHooks"},
 	}
 }
 
@@ -19403,6 +19410,12 @@ func schema_apimachinery_apis_stash_v1beta1_BackupBlueprintSpec(ref common.Refer
 							Format:      "",
 						},
 					},
+					"usagePolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "UsagePolicy specifies a policy of how this Repository will be used. For example, you can use `allowedNamespaces` policy to restrict the usage of this Repository to particular namespaces. This field is optional. If you don't provide the usagePolicy, then it can be used only from the current namespace.",
+							Ref:         ref("stash.appscode.dev/apimachinery/apis/stash/v1alpha1.UsagePolicy"),
+						},
+					},
 					"schedule": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -19455,7 +19468,7 @@ func schema_apimachinery_apis_stash_v1beta1_BackupBlueprintSpec(ref common.Refer
 			},
 		},
 		Dependencies: []string{
-			"kmodules.xyz/objectstore-api/api/v1.Backend", "kmodules.xyz/offshoot-api/api/v1.PersistentVolumeClaim", "kmodules.xyz/offshoot-api/api/v1.RuntimeSettings", "stash.appscode.dev/apimachinery/apis/stash/v1alpha1.RetentionPolicy", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.EmptyDirSettings", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.TaskRef"},
+			"kmodules.xyz/objectstore-api/api/v1.Backend", "kmodules.xyz/offshoot-api/api/v1.PersistentVolumeClaim", "kmodules.xyz/offshoot-api/api/v1.RuntimeSettings", "stash.appscode.dev/apimachinery/apis/stash/v1alpha1.RetentionPolicy", "stash.appscode.dev/apimachinery/apis/stash/v1alpha1.UsagePolicy", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.EmptyDirSettings", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.TaskRef"},
 	}
 }
 
@@ -19615,7 +19628,7 @@ func schema_apimachinery_apis_stash_v1beta1_BackupConfigurationSpec(ref common.R
 						SchemaProps: spec.SchemaProps{
 							Description: "Repository refer to the Repository crd that holds backend information",
 							Default:     map[string]interface{}{},
-							Ref:         ref("k8s.io/api/core/v1.LocalObjectReference"),
+							Ref:         ref("kmodules.xyz/client-go/api/v1.ObjectReference"),
 						},
 					},
 					"retentionPolicy": {
@@ -19644,7 +19657,7 @@ func schema_apimachinery_apis_stash_v1beta1_BackupConfigurationSpec(ref common.R
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.LocalObjectReference", "kmodules.xyz/offshoot-api/api/v1.PersistentVolumeClaim", "kmodules.xyz/offshoot-api/api/v1.RuntimeSettings", "stash.appscode.dev/apimachinery/apis/stash/v1alpha1.RetentionPolicy", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.BackupHooks", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.BackupTarget", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.EmptyDirSettings", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.TaskRef"},
+			"kmodules.xyz/client-go/api/v1.ObjectReference", "kmodules.xyz/offshoot-api/api/v1.PersistentVolumeClaim", "kmodules.xyz/offshoot-api/api/v1.RuntimeSettings", "stash.appscode.dev/apimachinery/apis/stash/v1alpha1.RetentionPolicy", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.BackupHooks", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.BackupTarget", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.EmptyDirSettings", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.TaskRef"},
 	}
 }
 
@@ -20745,7 +20758,7 @@ func schema_apimachinery_apis_stash_v1beta1_RestoreBatchSpec(ref common.Referenc
 						SchemaProps: spec.SchemaProps{
 							Description: "Repository refer to the Repository crd that holds backend information",
 							Default:     map[string]interface{}{},
-							Ref:         ref("k8s.io/api/core/v1.LocalObjectReference"),
+							Ref:         ref("kmodules.xyz/client-go/api/v1.ObjectReference"),
 						},
 					},
 					"members": {
@@ -20779,7 +20792,7 @@ func schema_apimachinery_apis_stash_v1beta1_RestoreBatchSpec(ref common.Referenc
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.LocalObjectReference", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.RestoreHooks", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.RestoreTargetSpec"},
+			"kmodules.xyz/client-go/api/v1.ObjectReference", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.RestoreHooks", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.RestoreTargetSpec"},
 	}
 }
 
@@ -21079,7 +21092,7 @@ func schema_apimachinery_apis_stash_v1beta1_RestoreSessionSpec(ref common.Refere
 						SchemaProps: spec.SchemaProps{
 							Description: "Repository refer to the Repository crd that hold backend information",
 							Default:     map[string]interface{}{},
-							Ref:         ref("k8s.io/api/core/v1.LocalObjectReference"),
+							Ref:         ref("kmodules.xyz/client-go/api/v1.ObjectReference"),
 						},
 					},
 					"rules": {
@@ -21100,7 +21113,7 @@ func schema_apimachinery_apis_stash_v1beta1_RestoreSessionSpec(ref common.Refere
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.LocalObjectReference", "kmodules.xyz/offshoot-api/api/v1.PersistentVolumeClaim", "kmodules.xyz/offshoot-api/api/v1.RuntimeSettings", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.EmptyDirSettings", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.RestoreHooks", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.RestoreTarget", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.Rule", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.TaskRef"},
+			"kmodules.xyz/client-go/api/v1.ObjectReference", "kmodules.xyz/offshoot-api/api/v1.PersistentVolumeClaim", "kmodules.xyz/offshoot-api/api/v1.RuntimeSettings", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.EmptyDirSettings", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.RestoreHooks", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.RestoreTarget", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.Rule", "stash.appscode.dev/apimachinery/apis/stash/v1beta1.TaskRef"},
 	}
 }
 

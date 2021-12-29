@@ -67,7 +67,7 @@ func NewCmdBackup() *cobra.Command {
 		Short:             "Takes a backup of MySQL DB",
 		DisableAutoGenTag: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			flags.EnsureRequiredFlags(cmd, "appbinding", "provider", "secret-dir")
+			flags.EnsureRequiredFlags(cmd, "appbinding", "provider")
 
 			// prepare client
 			config, err := clientcmd.BuildConfigFromFlags(masterURL, kubeconfigPath)
@@ -135,10 +135,11 @@ func NewCmdBackup() *cobra.Command {
 	cmd.Flags().StringVar(&opt.setupOptions.Endpoint, "endpoint", opt.setupOptions.Endpoint, "Endpoint for s3/s3 compatible backend or REST backend URL")
 	cmd.Flags().StringVar(&opt.setupOptions.Region, "region", opt.setupOptions.Region, "Region for s3/s3 compatible backend")
 	cmd.Flags().StringVar(&opt.setupOptions.Path, "path", opt.setupOptions.Path, "Directory inside the bucket where backup will be stored")
-	cmd.Flags().StringVar(&opt.setupOptions.SecretDir, "secret-dir", opt.setupOptions.SecretDir, "Directory where storage secret has been mounted")
 	cmd.Flags().StringVar(&opt.setupOptions.ScratchDir, "scratch-dir", opt.setupOptions.ScratchDir, "Temporary directory")
 	cmd.Flags().BoolVar(&opt.setupOptions.EnableCache, "enable-cache", opt.setupOptions.EnableCache, "Specify whether to enable caching for restic")
 	cmd.Flags().Int64Var(&opt.setupOptions.MaxConnections, "max-connections", opt.setupOptions.MaxConnections, "Specify maximum concurrent connections for GCS, Azure and B2 backend")
+	cmd.Flags().StringVar(&opt.storageSecret.Name, "storage-secret-name", opt.storageSecret.Name, "Name of the storage secret")
+	cmd.Flags().StringVar(&opt.storageSecret.Namespace, "storage-secret-namespace", opt.storageSecret.Namespace, "Namespace of the storage secret")
 
 	cmd.Flags().StringVar(&opt.backupOptions.Host, "hostname", opt.backupOptions.Host, "Name of the host machine")
 
@@ -158,6 +159,12 @@ func NewCmdBackup() *cobra.Command {
 }
 
 func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.BackupOutput, error) {
+
+	var err error
+	opt.setupOptions.StorageSecret, err = opt.kubeClient.CoreV1().Secrets(opt.storageSecret.Namespace).Get(context.TODO(), opt.storageSecret.Name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
 	// if any pre-backup actions has been assigned to it, execute them
 	actionOptions := api_util.ActionOptions{
 		StashClient:       opt.stashClient,
@@ -166,7 +173,7 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 		BackupSessionName: opt.backupSessionName,
 		Namespace:         opt.namespace,
 	}
-	err := api_util.ExecutePreBackupActions(actionOptions)
+	err = api_util.ExecutePreBackupActions(actionOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -180,29 +187,26 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 	if err != nil {
 		return nil, err
 	}
+
 	opt.setupOptions.IONice, err = v1.IONiceSettingsFromEnv()
 	if err != nil {
 		return nil, err
 	}
 
-	// get app binding
 	appBinding, err := opt.catalogClient.AppcatalogV1alpha1().AppBindings(opt.namespace).Get(context.TODO(), opt.appBindingName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
-	// get secret
 	appBindingSecret, err := opt.kubeClient.CoreV1().Secrets(opt.namespace).Get(context.TODO(), appBinding.Spec.Secret.Name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	// transform secret
 	err = appBinding.TransformSecret(opt.kubeClient, appBindingSecret.Data)
 	if err != nil {
 		return nil, err
 	}
 
-	// init restic wrapper
 	resticWrapper, err := restic.NewResticWrapper(opt.setupOptions)
 	if err != nil {
 		return nil, err
@@ -210,17 +214,28 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 
 	// set env for mysqldump
 	resticWrapper.SetEnv(EnvMySqlPassword, string(appBindingSecret.Data[MySqlPassword]))
+
+	hostname, err := appBinding.Hostname()
+	if err != nil {
+		return nil, err
+	}
+
 	// setup pipe command
 	backupCmd := restic.Command{
 		Name: MySqlDumpCMD,
 		Args: []interface{}{
 			"-u", string(appBindingSecret.Data[MySqlUser]),
-			"-h", appBinding.Spec.ClientConfig.Service.Name,
+			"-h", hostname,
 		},
 	}
 	// if port is specified, append port in the arguments
+	port, err := appBinding.Port()
+	if err != nil {
+		return nil, err
+	}
+
 	if appBinding.Spec.ClientConfig.Service.Port != 0 {
-		backupCmd.Args = append(backupCmd.Args, fmt.Sprintf("--port=%d", appBinding.Spec.ClientConfig.Service.Port))
+		backupCmd.Args = append(backupCmd.Args, fmt.Sprintf("--port=%d", port))
 	}
 	for _, arg := range strings.Fields(opt.myArgs) {
 		backupCmd.Args = append(backupCmd.Args, arg)
@@ -238,7 +253,6 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 		backupCmd.Args = append(backupCmd.Args, tlsCreds...)
 	}
 
-	// wait for DB ready
 	err = opt.waitForDBReady(appBinding, appBindingSecret)
 	if err != nil {
 		return nil, err
@@ -247,6 +261,5 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 	// add backup command in the pipeline
 	opt.backupOptions.StdinPipeCommands = append(opt.backupOptions.StdinPipeCommands, backupCmd)
 
-	// Run backup
 	return resticWrapper.RunBackup(opt.backupOptions, targetRef)
 }
