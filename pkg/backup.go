@@ -220,23 +220,21 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 		return nil, err
 	}
 
+	port, err := appBinding.Port()
+	if err != nil {
+		return nil, err
+	}
+
 	// setup pipe command
 	backupCmd := restic.Command{
 		Name: MySqlDumpCMD,
 		Args: []interface{}{
 			"-u", string(appBindingSecret.Data[MySqlUser]),
 			"-h", hostname,
+			"--port", fmt.Sprintf("%d", port),
 		},
 	}
-	// if port is specified, append port in the arguments
-	port, err := appBinding.Port()
-	if err != nil {
-		return nil, err
-	}
 
-	if appBinding.Spec.ClientConfig.Service.Port != 0 {
-		backupCmd.Args = append(backupCmd.Args, fmt.Sprintf("--port=%d", port))
-	}
 	for _, arg := range strings.Fields(opt.myArgs) {
 		backupCmd.Args = append(backupCmd.Args, arg)
 	}

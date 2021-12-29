@@ -185,6 +185,7 @@ func (opt *mysqlOptions) restoreMySQL(targetRef api_v1beta1.TargetRef) (*restic.
 	if err != nil {
 		return nil, err
 	}
+
 	port, err := appBinding.Port()
 	if err != nil {
 		return nil, err
@@ -196,11 +197,10 @@ func (opt *mysqlOptions) restoreMySQL(targetRef api_v1beta1.TargetRef) (*restic.
 		Args: []interface{}{
 			"-u", string(appBindingSecret.Data[MySqlUser]),
 			"-h", hostname,
+			"--port", fmt.Sprintf("%d", port),
 		},
 	}
-	if appBinding.Spec.ClientConfig.Service.Port != 0 {
-		restoreCmd.Args = append(restoreCmd.Args, fmt.Sprintf("--port=%d", port))
-	}
+
 	for _, arg := range strings.Fields(opt.myArgs) {
 		restoreCmd.Args = append(restoreCmd.Args, arg)
 	}
@@ -224,6 +224,5 @@ func (opt *mysqlOptions) restoreMySQL(targetRef api_v1beta1.TargetRef) (*restic.
 
 	// append the restore command to the pipeline
 	opt.dumpOptions.StdoutPipeCommands = append(opt.dumpOptions.StdoutPipeCommands, restoreCmd)
-
 	return resticWrapper.Dump(opt.dumpOptions, targetRef)
 }
