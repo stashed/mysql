@@ -563,6 +563,7 @@ kmodules.xyz/offshoot-api/api/v1
 kmodules.xyz/prober/api/v1
 # sigs.k8s.io/controller-runtime v0.9.0
 sigs.k8s.io/controller-runtime/pkg/client/apiutil
+sigs.k8s.io/controller-runtime/pkg/scheme
 # sigs.k8s.io/structured-merge-diff/v4 v4.1.2
 sigs.k8s.io/structured-merge-diff/v4/fieldpath
 sigs.k8s.io/structured-merge-diff/v4/schema
@@ -570,7 +571,7 @@ sigs.k8s.io/structured-merge-diff/v4/typed
 sigs.k8s.io/structured-merge-diff/v4/value
 # sigs.k8s.io/yaml v1.2.0
 sigs.k8s.io/yaml
-# stash.appscode.dev/apimachinery v0.17.1-0.20211223141655-53687e7febc6
+# stash.appscode.dev/apimachinery v0.17.1-0.20220104115423-bc75d16a1d6c
 ## explicit
 stash.appscode.dev/apimachinery/apis
 stash.appscode.dev/apimachinery/apis/repositories
@@ -578,6 +579,8 @@ stash.appscode.dev/apimachinery/apis/repositories/v1alpha1
 stash.appscode.dev/apimachinery/apis/stash
 stash.appscode.dev/apimachinery/apis/stash/v1alpha1
 stash.appscode.dev/apimachinery/apis/stash/v1beta1
+stash.appscode.dev/apimachinery/apis/ui
+stash.appscode.dev/apimachinery/apis/ui/v1alpha1
 stash.appscode.dev/apimachinery/client/clientset/versioned
 stash.appscode.dev/apimachinery/client/clientset/versioned/fake
 stash.appscode.dev/apimachinery/client/clientset/versioned/scheme
@@ -588,6 +591,8 @@ stash.appscode.dev/apimachinery/client/clientset/versioned/typed/stash/v1alpha1/
 stash.appscode.dev/apimachinery/client/clientset/versioned/typed/stash/v1beta1
 stash.appscode.dev/apimachinery/client/clientset/versioned/typed/stash/v1beta1/fake
 stash.appscode.dev/apimachinery/client/clientset/versioned/typed/stash/v1beta1/util
+stash.appscode.dev/apimachinery/client/clientset/versioned/typed/ui/v1alpha1
+stash.appscode.dev/apimachinery/client/clientset/versioned/typed/ui/v1alpha1/fake
 stash.appscode.dev/apimachinery/crds
 stash.appscode.dev/apimachinery/pkg/conditions
 stash.appscode.dev/apimachinery/pkg/invoker
