@@ -79,9 +79,12 @@ func (opt *mysqlOptions) waitForDBReady(appBinding *v1alpha1.AppBinding, secret 
 	args := []interface{}{
 		"--host", hostname,
 		"-u", string(secret.Data[MySqlUser]),
-		"--port", fmt.Sprintf("%d", port),
 	}
 
+	// if port is specified, append port in the arguments
+	if port != 0 {
+		args = append(args, fmt.Sprintf("--port=%d", port))
+	}
 	if appBinding.Spec.ClientConfig.CABundle != nil {
 		args = append(args, fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MySQLTLSRootCA)))
 	}
