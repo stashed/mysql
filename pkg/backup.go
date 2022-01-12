@@ -18,11 +18,7 @@ package pkg
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
-	"os"
 	"path/filepath"
-	"strings"
 
 	api_v1beta1 "stash.appscode.dev/apimachinery/apis/stash/v1beta1"
 	stash "stash.appscode.dev/apimachinery/client/clientset/versioned"
@@ -173,21 +169,23 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 		BackupSessionName: opt.backupSessionName,
 		Namespace:         opt.namespace,
 	}
+
 	err = api_util.ExecutePreBackupActions(actionOptions)
 	if err != nil {
 		return nil, err
 	}
+
 	// wait until the backend repository has been initialized.
 	err = api_util.WaitForBackendRepository(actionOptions)
 	if err != nil {
 		return nil, err
 	}
+
 	// apply nice, ionice settings from env
 	opt.setupOptions.Nice, err = v1.NiceSettingsFromEnv()
 	if err != nil {
 		return nil, err
 	}
-
 	opt.setupOptions.IONice, err = v1.IONiceSettingsFromEnv()
 	if err != nil {
 		return nil, err
@@ -197,71 +195,37 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 	if err != nil {
 		return nil, err
 	}
-	appBindingSecret, err := opt.kubeClient.CoreV1().Secrets(opt.namespace).Get(context.TODO(), appBinding.Spec.Secret.Name, metav1.GetOptions{})
+
+	session := opt.newSessionWrapper(MySqlDumpCMD)
+
+	err = session.setDatabaseCredentials(opt.kubeClient, appBinding)
 	if err != nil {
 		return nil, err
 	}
 
-	err = appBinding.TransformSecret(opt.kubeClient, appBindingSecret.Data)
+	err = session.setDatabaseConnectionParameters(appBinding)
 	if err != nil {
 		return nil, err
 	}
 
-	resticWrapper, err := restic.NewResticWrapper(opt.setupOptions)
+	err = session.setTLSParameters(appBinding, opt.setupOptions.ScratchDir)
 	if err != nil {
 		return nil, err
 	}
 
-	// set env for mysqldump
-	resticWrapper.SetEnv(EnvMySqlPassword, string(appBindingSecret.Data[MySqlPassword]))
-
-	hostname, err := appBinding.Hostname()
+	err = session.waitForDBReady(opt.waitTimeout)
 	if err != nil {
 		return nil, err
 	}
 
-	port, err := appBinding.Port()
-	if err != nil {
-		return nil, err
-	}
-
-	// setup pipe command
-	backupCmd := restic.Command{
-		Name: MySqlDumpCMD,
-		Args: []interface{}{
-			"-u", string(appBindingSecret.Data[MySqlUser]),
-			"-h", hostname,
-		},
-	}
-
-	// if port is specified, append port in the arguments
-	if port != 0 {
-		backupCmd.Args = append(backupCmd.Args, fmt.Sprintf("--port=%d", port))
-	}
-
-	for _, arg := range strings.Fields(opt.myArgs) {
-		backupCmd.Args = append(backupCmd.Args, arg)
-	}
-
-	// if ssl enabled, add ca.crt in the arguments
-	if appBinding.Spec.ClientConfig.CABundle != nil {
-		if err := ioutil.WriteFile(filepath.Join(opt.setupOptions.ScratchDir, MySQLTLSRootCA), appBinding.Spec.ClientConfig.CABundle, os.ModePerm); err != nil {
-			return nil, err
-		}
-		tlsCreds := []interface{}{
-			fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MySQLTLSRootCA)),
-		}
-
-		backupCmd.Args = append(backupCmd.Args, tlsCreds...)
-	}
-
-	err = opt.waitForDBReady(appBinding, appBindingSecret)
-	if err != nil {
-		return nil, err
-	}
+	session.setUserArgs(opt.myArgs)
 
 	// add backup command in the pipeline
-	opt.backupOptions.StdinPipeCommands = append(opt.backupOptions.StdinPipeCommands, backupCmd)
+	opt.backupOptions.StdinPipeCommands = append(opt.backupOptions.StdinPipeCommands, *session.cmd)
+	resticWrapper, err := restic.NewResticWrapperFromShell(opt.setupOptions, session.sh)
+	if err != nil {
+		return nil, err
+	}
 
 	return resticWrapper.RunBackup(opt.backupOptions, targetRef)
 }

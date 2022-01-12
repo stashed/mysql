@@ -1,12 +1,9 @@
 /*
 Copyright AppsCode Inc. and Contributors
-
 Licensed under the AppsCode Free Trial License 1.0.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     https://github.com/appscode/licenses/raw/1.0.0/AppsCode-Free-Trial-1.0.0.md
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,11 +15,7 @@ package pkg
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
-	"os"
 	"path/filepath"
-	"strings"
 
 	api_v1beta1 "stash.appscode.dev/apimachinery/apis/stash/v1beta1"
 	"stash.appscode.dev/apimachinery/pkg/restic"
@@ -163,70 +156,33 @@ func (opt *mysqlOptions) restoreMySQL(targetRef api_v1beta1.TargetRef) (*restic.
 		return nil, err
 	}
 
-	appBindingSecret, err := opt.kubeClient.CoreV1().Secrets(opt.namespace).Get(context.TODO(), appBinding.Spec.Secret.Name, metav1.GetOptions{})
+	session := opt.newSessionWrapper(MySqlRestoreCMD)
+
+	err = session.setDatabaseCredentials(opt.kubeClient, appBinding)
 	if err != nil {
 		return nil, err
 	}
 
-	err = appBinding.TransformSecret(opt.kubeClient, appBindingSecret.Data)
+	err = session.setDatabaseConnectionParameters(appBinding)
 	if err != nil {
 		return nil, err
 	}
 
-	resticWrapper, err := restic.NewResticWrapper(opt.setupOptions)
+	err = session.setTLSParameters(appBinding, opt.setupOptions.ScratchDir)
 	if err != nil {
 		return nil, err
 	}
 
-	// set env for mysql
-	resticWrapper.SetEnv(EnvMySqlPassword, string(appBindingSecret.Data[MySqlPassword]))
-
-	hostname, err := appBinding.Hostname()
+	err = session.waitForDBReady(opt.waitTimeout)
 	if err != nil {
 		return nil, err
 	}
-
-	port, err := appBinding.Port()
-	if err != nil {
-		return nil, err
-	}
-
-	// setup pipe command
-	restoreCmd := restic.Command{
-		Name: MySqlRestoreCMD,
-		Args: []interface{}{
-			"-u", string(appBindingSecret.Data[MySqlUser]),
-			"-h", hostname,
-		},
-	}
-
-	// if port is specified, append port in the arguments
-	if port != 0 {
-		restoreCmd.Args = append(restoreCmd.Args, fmt.Sprintf("--port=%d", port))
-	}
-
-	for _, arg := range strings.Fields(opt.myArgs) {
-		restoreCmd.Args = append(restoreCmd.Args, arg)
-	}
-
-	// if ssl enabled, add ca.crt in the arguments
-	if appBinding.Spec.ClientConfig.CABundle != nil {
-		if err := ioutil.WriteFile(filepath.Join(opt.setupOptions.ScratchDir, MySQLTLSRootCA), appBinding.Spec.ClientConfig.CABundle, os.ModePerm); err != nil {
-			return nil, err
-		}
-		tlsCreds := []interface{}{
-			fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MySQLTLSRootCA)),
-		}
-
-		restoreCmd.Args = append(restoreCmd.Args, tlsCreds...)
-	}
-
-	err = opt.waitForDBReady(appBinding, appBindingSecret)
-	if err != nil {
-		return nil, err
-	}
-
+	session.setUserArgs(opt.myArgs)
 	// append the restore command to the pipeline
-	opt.dumpOptions.StdoutPipeCommands = append(opt.dumpOptions.StdoutPipeCommands, restoreCmd)
+	opt.dumpOptions.StdoutPipeCommands = append(opt.dumpOptions.StdoutPipeCommands, *session.cmd)
+	resticWrapper, err := restic.NewResticWrapperFromShell(opt.setupOptions, session.sh)
+	if err != nil {
+		return nil, err
+	}
 	return resticWrapper.Dump(opt.dumpOptions, targetRef)
 }
