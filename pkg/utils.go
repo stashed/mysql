@@ -133,12 +133,17 @@ func (session *sessionWrapper) setTLSParameters(appBinding *appcatalog.AppBindin
 	return nil
 }
 
-func (session *sessionWrapper) waitForDBReady(waitTimeout int32) error {
-	klog.Infoln("Waiting for the database to be ready.....")
+func (session sessionWrapper) waitForDBReady(waitTimeout int32) error {
+	klog.Infoln("Waiting for the database to be ready....")
 
-	sh := session.sh
+	sh := shell.NewSession()
+	for k, v := range session.sh.Env {
+		sh.SetEnv(k, v)
+	}
+
 	// Execute "SELECT 1" query to the database. It should return an error when mysqld is not ready.
 	args := append(session.cmd.Args, "-e", "SELECT 1;")
+
 	// don't show the output of the query
 	sh.Stdout = nil
 

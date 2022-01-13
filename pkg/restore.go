@@ -177,7 +177,9 @@ func (opt *mysqlOptions) restoreMySQL(targetRef api_v1beta1.TargetRef) (*restic.
 	if err != nil {
 		return nil, err
 	}
+
 	session.setUserArgs(opt.myArgs)
+
 	// append the restore command to the pipeline
 	opt.dumpOptions.StdoutPipeCommands = append(opt.dumpOptions.StdoutPipeCommands, *session.cmd)
 	resticWrapper, err := restic.NewResticWrapperFromShell(opt.setupOptions, session.sh)
