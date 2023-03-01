@@ -36,7 +36,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
 
 RUN set -x \
-  && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 467B942D3A79BD29
+  && apt-key adv --no-tty --keyserver keyserver.ubuntu.com --recv-keys 467B942D3A79BD29
 
 RUN set -x \
   && apt-get update \
