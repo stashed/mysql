@@ -154,7 +154,7 @@ go.bytebuilders.dev/license-verifier/info
 # go.bytebuilders.dev/license-verifier/kubernetes v0.12.0
 ## explicit; go 1.18
 go.bytebuilders.dev/license-verifier/kubernetes
-# golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd
+# golang.org/x/crypto v0.6.0
 ## explicit; go 1.17
 golang.org/x/crypto/pkcs12
 golang.org/x/crypto/pkcs12/internal/rc2
