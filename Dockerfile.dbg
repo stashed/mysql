@@ -35,12 +35,18 @@ LABEL org.opencontainers.image.source https://github.com/stashed/mysql
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
 
+# Update stretch repositories
+# ref: https://stackoverflow.com/a/76095392
+RUN sed -i s/deb.debian.org/archive.debian.org/g /etc/apt/sources.list
+RUN sed -i 's|security.debian.org|archive.debian.org/debian-security|g' /etc/apt/sources.list
+RUN sed -i '/jessie-updates/d' /etc/apt/sources.list
+
 RUN set -x \
   && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 467B942D3A79BD29
 
 RUN set -x \
   && apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates \
+  && apt-get install --allow-unauthenticated -y --no-install-recommends ca-certificates \
   && rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man /tmp/*
 
 COPY --from=0 restic /bin/restic
