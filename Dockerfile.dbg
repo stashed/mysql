@@ -35,6 +35,12 @@ LABEL org.opencontainers.image.source https://github.com/stashed/mysql
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
 
+# Update stretch repositories
+# ref: https://stackoverflow.com/a/76095392
+RUN sed -i s/deb.debian.org/archive.debian.org/g /etc/apt/sources.list
+RUN sed -i 's|security.debian.org|archive.debian.org/|g' /etc/apt/sources.list
+RUN sed -i '/stretch-updates/d' /etc/apt/sources.list
+
 RUN set -x \
   && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 467B942D3A79BD29
 
