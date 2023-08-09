@@ -219,6 +219,12 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 		return nil, err
 	}
 
+	databases, err := session.getBackupDatabases()
+	if err != nil {
+		return nil, err
+	}
+	session.setBackupDatabases(databases)
+
 	session.setUserArgs(opt.myArgs)
 
 	// add backup command in the pipeline

@@ -43,7 +43,7 @@ const (
 	MySqlPassword    = "password"
 	MySqlDumpFile    = "dumpfile.sql"
 	MySqlDumpCMD     = "mysqldump"
-	MySqlRestoreCMD  = "mysql"
+	MySqlCMD         = "mysql"
 	EnvMySqlPassword = "MYSQL_PWD"
 )
 
@@ -157,4 +157,44 @@ func (session sessionWrapper) waitForDBReady(waitTimeout int32) error {
 		klog.Infof("Unable to connect with the database. Reason: %v.\nRetrying after 5 seconds....", err)
 		return false, nil
 	})
+}
+
+func (session sessionWrapper) getBackupDatabases() ([]string, error) {
+	sh := shell.NewSession()
+	for k, v := range session.sh.Env {
+		sh.SetEnv(k, v)
+	}
+
+	args := append(session.cmd.Args, "--raw", "--execute", "show databases")
+	sh.ShowCMD = true
+	out, err := sh.Command(MySqlCMD, args...).Command("tail", "-n+2").Output()
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	// Convert the byte slice to a string and split it into lines
+	databases := strings.Split(string(out), "\n")
+
+	// Process the slice of strings as needed
+	var backupDatabases []string
+	for _, db := range databases {
+		db := strings.TrimSpace(db)
+		if db != "" && !isSystemDatabase(db) {
+			backupDatabases = append(backupDatabases, db)
+		}
+	}
+
+	return backupDatabases, nil
+}
+
+func isSystemDatabase(db string) bool {
+	return db == "information_schema" || db == "mysql" || db == "performance_schema" || db == "sys"
+}
+
+func (session *sessionWrapper) setBackupDatabases(databases []string) {
+	session.cmd.Args = append(session.cmd.Args, "--databases")
+	for _, db := range databases {
+		session.cmd.Args = append(session.cmd.Args, db)
+	}
 }
