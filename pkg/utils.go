@@ -166,10 +166,8 @@ func (session sessionWrapper) getBackupDatabases() ([]string, error) {
 	}
 
 	args := append(session.cmd.Args, "--raw", "--execute", "show databases")
-	sh.ShowCMD = true
 	out, err := sh.Command(MySqlCMD, args...).Command("tail", "-n+2").Output()
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 
