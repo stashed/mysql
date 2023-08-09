@@ -171,10 +171,8 @@ func (session sessionWrapper) getBackupDatabases() ([]string, error) {
 		return nil, err
 	}
 
-	// Convert the byte slice to a string and split it into lines
 	databases := strings.Split(string(out), "\n")
 
-	// Process the slice of strings as needed
 	var backupDatabases []string
 	for _, db := range databases {
 		db := strings.TrimSpace(db)
