@@ -159,7 +159,7 @@ func (session sessionWrapper) waitForDBReady(waitTimeout int32) error {
 	})
 }
 
-func (session sessionWrapper) getBackupDatabases() ([]string, error) {
+func (session sessionWrapper) fetchNonSystemDatabases() ([]string, error) {
 	sh := shell.NewSession()
 	for k, v := range session.sh.Env {
 		sh.SetEnv(k, v)

@@ -219,7 +219,7 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 		return nil, err
 	}
 
-	databases, err := session.getBackupDatabases()
+	databases, err := session.fetchNonSystemDatabases()
 	if err != nil {
 		return nil, err
 	}
