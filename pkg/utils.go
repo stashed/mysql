@@ -171,24 +171,24 @@ func (session sessionWrapper) fetchNonSystemDatabases() ([]string, error) {
 		return nil, err
 	}
 
-	databases := strings.Split(string(out), "\n")
+	allDatabases := strings.Split(string(out), "\n")
 
-	var backupDatabases []string
-	for _, db := range databases {
+	var databases []string
+	for _, db := range allDatabases {
 		db := strings.TrimSpace(db)
 		if db != "" && !isSystemDatabase(db) {
-			backupDatabases = append(backupDatabases, db)
+			databases = append(databases, db)
 		}
 	}
 
-	return backupDatabases, nil
+	return databases, nil
 }
 
 func isSystemDatabase(db string) bool {
 	return db == "information_schema" || db == "mysql" || db == "performance_schema" || db == "sys"
 }
 
-func (session *sessionWrapper) setBackupDatabases(databases []string) {
+func (session *sessionWrapper) setTargetDatabases(databases []string) {
 	session.cmd.Args = append(session.cmd.Args, "--databases")
 	for _, db := range databases {
 		session.cmd.Args = append(session.cmd.Args, db)

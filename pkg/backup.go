@@ -223,7 +223,7 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 	if err != nil {
 		return nil, err
 	}
-	session.setBackupDatabases(databases)
+	session.setTargetDatabases(databases)
 
 	session.setUserArgs(opt.myArgs)
 
