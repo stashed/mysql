@@ -18,6 +18,7 @@ package pkg
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 
 	api_v1beta1 "stash.appscode.dev/apimachinery/apis/stash/v1beta1"
@@ -223,6 +224,11 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 	if err != nil {
 		return nil, err
 	}
+
+	if len(databases) == 0 {
+		return nil, fmt.Errorf("unable to find any databases for backup")
+	}
+
 	session.setTargetDatabases(databases)
 
 	session.setUserArgs(opt.myArgs)
