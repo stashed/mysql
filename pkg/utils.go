@@ -43,7 +43,7 @@ const (
 	MySqlPassword    = "password"
 	MySqlDumpFile    = "dumpfile.sql"
 	MySqlDumpCMD     = "mysqldump"
-	MySqlRestoreCMD  = "mysql"
+	MySqlCMD         = "mysql"
 	EnvMySqlPassword = "MYSQL_PWD"
 )
 
@@ -157,4 +157,40 @@ func (session sessionWrapper) waitForDBReady(waitTimeout int32) error {
 		klog.Infof("Unable to connect with the database. Reason: %v.\nRetrying after 5 seconds....", err)
 		return false, nil
 	})
+}
+
+func (session sessionWrapper) fetchNonSystemDatabases() ([]string, error) {
+	sh := shell.NewSession()
+	for k, v := range session.sh.Env {
+		sh.SetEnv(k, v)
+	}
+
+	args := append(session.cmd.Args, "--raw", "--execute", "show databases")
+	out, err := sh.Command(MySqlCMD, args...).Command("tail", "-n+2").Output()
+	if err != nil {
+		return nil, err
+	}
+
+	allDatabases := strings.Split(string(out), "\n")
+
+	var databases []string
+	for _, db := range allDatabases {
+		db := strings.TrimSpace(db)
+		if db != "" && !isSystemDatabase(db) {
+			databases = append(databases, db)
+		}
+	}
+
+	return databases, nil
+}
+
+func isSystemDatabase(db string) bool {
+	return db == "information_schema" || db == "mysql" || db == "performance_schema" || db == "sys"
+}
+
+func (session *sessionWrapper) setTargetDatabases(databases []string) {
+	session.cmd.Args = append(session.cmd.Args, "--databases")
+	for _, db := range databases {
+		session.cmd.Args = append(session.cmd.Args, db)
+	}
 }

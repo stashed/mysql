@@ -161,7 +161,7 @@ func (opt *mysqlOptions) restoreMySQL(targetRef api_v1beta1.TargetRef) (*restic.
 		return nil, err
 	}
 
-	session := opt.newSessionWrapper(MySqlRestoreCMD)
+	session := opt.newSessionWrapper(MySqlCMD)
 
 	err = session.setDatabaseCredentials(opt.kubeClient, appBinding)
 	if err != nil {
