@@ -7,7 +7,7 @@ require (
 	go.bytebuilders.dev/license-verifier/kubernetes v0.13.2
 	gomodules.xyz/flags v0.1.3
 	gomodules.xyz/go-sh v0.1.0
-	gomodules.xyz/logs v0.0.6
+	gomodules.xyz/logs v0.0.7
 	gomodules.xyz/x v0.0.15
 	k8s.io/apimachinery v0.25.3
 	k8s.io/client-go v0.25.1
