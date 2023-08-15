@@ -41,6 +41,10 @@ RUN sed -i s/deb.debian.org/archive.debian.org/g /etc/apt/sources.list
 RUN sed -i 's|security.debian.org|archive.debian.org/|g' /etc/apt/sources.list
 RUN sed -i '/stretch-updates/d' /etc/apt/sources.list
 
+# https://github.com/usbarmory/usbarmory-debian-base_image/issues/9#issuecomment-451635505
+RUN mkdir ~/.gnupg
+RUN echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf
+
 RUN set -x \
   && apt-key adv --no-tty --keyserver keyserver.ubuntu.com --recv-keys 467B942D3A79BD29
 
