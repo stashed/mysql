@@ -149,7 +149,7 @@ func (session sessionWrapper) waitForDBReady(waitTimeout int32) error {
 	// don't show the output of the query
 	sh.Stdout = nil
 
-	return wait.PollImmediate(5*time.Second, time.Duration(waitTimeout)*time.Second, func() (done bool, err error) {
+	return wait.PollUntilContextTimeout(context.Background(), 5*time.Second, time.Duration(waitTimeout)*time.Second, true, func(ctx context.Context) (done bool, err error) {
 		if err := sh.Command("mysql", args...).Run(); err == nil {
 			klog.Infoln("Database is accepting connection....")
 			return true, nil
