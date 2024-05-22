@@ -19,6 +19,7 @@ package pkg
 import (
 	"context"
 	"path/filepath"
+	"strings"
 
 	api_v1beta1 "stash.appscode.dev/apimachinery/apis/stash/v1beta1"
 	stash "stash.appscode.dev/apimachinery/client/clientset/versioned"
@@ -221,6 +222,9 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 	}
 
 	session.setUserArgs(opt.myArgs)
+	if strings.Contains(opt.myArgs, "--all-databases") {
+		session.cmd.Args = append(session.cmd.Args, "--ignore-table=mysql.user")
+	}
 
 	// add backup command in the pipeline
 	opt.backupOptions.StdinPipeCommands = append(opt.backupOptions.StdinPipeCommands, *session.cmd)
