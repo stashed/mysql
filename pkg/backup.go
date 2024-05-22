@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	api_v1beta1 "stash.appscode.dev/apimachinery/apis/stash/v1beta1"
 	stash "stash.appscode.dev/apimachinery/client/clientset/versioned"
@@ -220,16 +221,18 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 		return nil, err
 	}
 
-	databases, err := session.fetchNonSystemDatabases()
-	if err != nil {
-		return nil, err
-	}
+	if strings.Contains(opt.myArgs, "--all-databases") {
+		databases, err := session.fetchNonSystemDatabases()
+		if err != nil {
+			return nil, err
+		}
 
-	if len(databases) == 0 {
-		return nil, fmt.Errorf("unable to find any databases for backup")
-	}
+		if len(databases) == 0 {
+			return nil, fmt.Errorf("unable to find any databases for backup")
+		}
 
-	session.setTargetDatabases(databases)
+		session.setTargetDatabases(databases)
+	}
 
 	session.setUserArgs(opt.myArgs)
 
