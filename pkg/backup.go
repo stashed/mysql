@@ -222,6 +222,7 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 	}
 
 	if strings.Contains(opt.myArgs, "--all-databases") {
+		opt.myArgs = strings.Replace(opt.myArgs, "--all-databases", "", -1)
 		databases, err := session.fetchNonSystemDatabases()
 		if err != nil {
 			return nil, err
