@@ -19,11 +19,11 @@ package pkg
 import (
 	"context"
 	"path/filepath"
-
 	api_v1beta1 "stash.appscode.dev/apimachinery/apis/stash/v1beta1"
 	stash "stash.appscode.dev/apimachinery/client/clientset/versioned"
 	"stash.appscode.dev/apimachinery/pkg/restic"
 	api_util "stash.appscode.dev/apimachinery/pkg/util"
+	"sync"
 
 	"github.com/spf13/cobra"
 	license "go.bytebuilders.dev/license-verifier/kubernetes"
@@ -115,6 +115,7 @@ func NewCmdBackup() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&opt.myArgs, "mysql-args", opt.myArgs, "Additional arguments")
+	cmd.Flags().StringVar(&opt.multiDumpArgs, "multiple-dump-args", opt.multiDumpArgs, "multiple-dump-args")
 	cmd.Flags().Int32Var(&opt.waitTimeout, "wait-timeout", opt.waitTimeout, "Time limit to wait for the database to be ready")
 
 	cmd.Flags().StringVar(&masterURL, "master", masterURL, "The address of the Kubernetes API server (overrides any value in kubeconfig)")
@@ -221,7 +222,7 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 	}
 
 	session.setUserArgs(opt.myArgs)
-
+	session.setMultiDumpArgs(opt.multiDumpArgs)
 	// add backup command in the pipeline
 	opt.backupOptions.StdinPipeCommands = append(opt.backupOptions.StdinPipeCommands, *session.cmd)
 	resticWrapper, err := restic.NewResticWrapperFromShell(opt.setupOptions, session.sh)
@@ -229,5 +230,9 @@ func (opt *mysqlOptions) backupMySQL(targetRef api_v1beta1.TargetRef) (*restic.B
 		return nil, err
 	}
 
-	return resticWrapper.RunBackup(opt.backupOptions, targetRef)
+	_, _ = resticWrapper.RunBackup(opt.backupOptions, targetRef)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	wg.Wait()
+	return nil, nil
 }
