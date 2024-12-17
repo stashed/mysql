@@ -214,7 +214,7 @@ func (session sessionWrapper) fetchNonSystemDatabases() ([]string, error) {
 	}
 
 	args := append(session.cmd.Args, "--raw", "--execute", "show databases")
-	out, err := sh.Command(MySqlCMD, args...).Command("tail", "-n+2").Output()
+	out, err := sh.Command(MySqlRestoreCMD, args...).Command("tail", "-n+2").Output()
 	if err != nil {
 		return nil, err
 	}
