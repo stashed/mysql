@@ -39,12 +39,14 @@ import (
 )
 
 const (
-	MySqlUser        = "username"
-	MySqlPassword    = "password"
-	MySqlDumpFile    = "dumpfile.sql"
-	MySqlDumpCMD     = "mysqldump"
-	MySqlCMD         = "mysql"
-	EnvMySqlPassword = "MYSQL_PWD"
+	MySqlUser          = "username"
+	MySqlPassword      = "password"
+	MySqlDumpFile      = "dumpfile.sql"
+	MySqlDumpCMD       = "mysqldump"
+	BashCMD            = "/bin/bash"
+	MySqlRestoreCMD    = "mysql"
+	EnvMySqlPassword   = "MYSQL_PWD"
+	multiDumpSeparator = "$args="
 )
 
 type mysqlOptions struct {
@@ -57,6 +59,7 @@ type mysqlOptions struct {
 	appBindingName      string
 	appBindingNamespace string
 	myArgs              string
+	multiDumpArgs       string
 	waitTimeout         int32
 	outputDir           string
 	storageSecret       kmapi.ObjectReference
@@ -121,6 +124,51 @@ func (session *sessionWrapper) setUserArgs(args string) {
 	}
 }
 
+func (session *sessionWrapper) setMultiDumpArgs(args string) {
+	if args == "" {
+		return
+	}
+
+	commonArgs := session.buildCommonArgsString()
+	dumpArgs := extractMultiDumpArgs(args)
+	if dumpArgs == nil {
+		return
+	}
+
+	// First Bash Command
+	session.cmd.Args = append([]interface{}{session.cmd.Name},
+		append(session.cmd.Args, dumpArgs[0])...)
+	session.cmd.Name = BashCMD
+	for idx := 1; idx < len(dumpArgs); idx++ {
+		session.cmd.Args = append(session.cmd.Args,
+			fmt.Sprintf("&& %s %s %s", MySqlDumpCMD, commonArgs, dumpArgs[idx]))
+	}
+}
+
+func (session *sessionWrapper) buildCommonArgsString() string {
+	var builder strings.Builder
+	for _, arg := range session.cmd.Args {
+		builder.WriteString(fmt.Sprintf(" %v", arg))
+	}
+	return strings.TrimSpace(builder.String())
+}
+
+func extractMultiDumpArgs(input string) []string {
+	parts := strings.Split(input, multiDumpSeparator)
+	if len(parts) <= 1 {
+		return nil
+	}
+
+	result := make([]string, 0, len(parts)-1)
+	for _, part := range parts[1:] {
+		if trimmed := strings.TrimSpace(part); trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+
+	return result
+}
+
 func (session *sessionWrapper) setTLSParameters(appBinding *appcatalog.AppBinding, scratchDir string) error {
 	// if ssl enabled, add ca.crt in the arguments
 	if appBinding.Spec.ClientConfig.CABundle != nil {
@@ -166,7 +214,7 @@ func (session sessionWrapper) fetchNonSystemDatabases() ([]string, error) {
 	}
 
 	args := append(session.cmd.Args, "--raw", "--execute", "show databases")
-	out, err := sh.Command(MySqlCMD, args...).Command("tail", "-n+2").Output()
+	out, err := sh.Command(MySqlRestoreCMD, args...).Command("tail", "-n+2").Output()
 	if err != nil {
 		return nil, err
 	}
