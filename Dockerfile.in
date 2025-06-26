@@ -50,7 +50,7 @@ RUN set -x \
 
 RUN set -x \
   && apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates \
+  && apt-get install -y --no-install-recommends --allow-unauthenticated ca-certificates \
   && rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man /tmp/*
 
 COPY --from=0 /restic /bin/restic
