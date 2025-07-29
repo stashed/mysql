@@ -27,7 +27,6 @@ RUN set -x                                                                      
   && chmod 755 restic
 
 
-
 FROM {ARG_FROM}
 
 LABEL org.opencontainers.image.source https://github.com/stashed/mysql
@@ -35,16 +34,9 @@ LABEL org.opencontainers.image.source https://github.com/stashed/mysql
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
 
-RUN set -x \
-  && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B7B3B788A8D3785C
-
-RUN set -x \
-  && apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates \
-  && rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man /tmp/*
-
 COPY --from=0 /restic /bin/restic
 COPY bin/{ARG_OS}_{ARG_ARCH}/{ARG_BIN} /{ARG_BIN}
+COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 USER 65534
 
