@@ -27,7 +27,6 @@ RUN set -x                                                                      
   && chmod 755 restic
 
 
-
 FROM {ARG_FROM}
 
 LABEL org.opencontainers.image.source https://github.com/stashed/mysql
@@ -35,26 +34,9 @@ LABEL org.opencontainers.image.source https://github.com/stashed/mysql
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
 
-# Update stretch repositories
-# ref: https://stackoverflow.com/a/76095392
-RUN sed -i s/deb.debian.org/archive.debian.org/g /etc/apt/sources.list
-RUN sed -i 's|security.debian.org|archive.debian.org/|g' /etc/apt/sources.list
-RUN sed -i '/stretch-updates/d' /etc/apt/sources.list
-
-# https://github.com/usbarmory/usbarmory-debian-base_image/issues/9#issuecomment-451635505
-RUN mkdir ~/.gnupg
-RUN echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf
-
-RUN set -x \
-  && wget -qO- http://keyserver.ubuntu.com:80/pks/lookup?op=get&search=0xB7B3B788A8D3785C > /etc/apt/trusted.gpg.d/myrepo.asc
-
-RUN set -x \
-  && apt-get update \
-  && apt-get install -y --no-install-recommends --allow-unauthenticated ca-certificates \
-  && rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man /tmp/*
-
 COPY --from=0 /restic /bin/restic
 COPY bin/{ARG_OS}_{ARG_ARCH}/{ARG_BIN} /{ARG_BIN}
+COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 USER 65534
 
