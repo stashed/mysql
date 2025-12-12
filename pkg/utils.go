@@ -136,7 +136,7 @@ func (session *sessionWrapper) setMultiDumpArgs(args string) {
 	}
 
 	// First Bash Command
-	session.cmd.Args = append([]interface{}{session.cmd.Name},
+	session.cmd.Args = append([]any{session.cmd.Name},
 		append(session.cmd.Args, dumpArgs[0])...)
 	session.cmd.Name = BashCMD
 	for idx := 1; idx < len(dumpArgs); idx++ {
@@ -175,7 +175,7 @@ func (session *sessionWrapper) setTLSParameters(appBinding *appcatalog.AppBindin
 		if err := os.WriteFile(filepath.Join(scratchDir, MySQLTLSRootCA), appBinding.Spec.ClientConfig.CABundle, os.ModePerm); err != nil {
 			return err
 		}
-		tlsCreds := []interface{}{
+		tlsCreds := []any{
 			fmt.Sprintf("--ssl-ca=%v", filepath.Join(scratchDir, MySQLTLSRootCA)),
 		}
 		session.cmd.Args = append(session.cmd.Args, tlsCreds)
