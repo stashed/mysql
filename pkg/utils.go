@@ -148,7 +148,7 @@ func (session *sessionWrapper) setMultiDumpArgs(args string) {
 func (session *sessionWrapper) buildCommonArgsString() string {
 	var builder strings.Builder
 	for _, arg := range session.cmd.Args {
-		builder.WriteString(fmt.Sprintf(" %v", arg))
+		fmt.Fprintf(&builder, " %v", arg)
 	}
 	return strings.TrimSpace(builder.String())
 }
